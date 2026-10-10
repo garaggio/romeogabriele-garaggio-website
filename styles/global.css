@@ -15,11 +15,23 @@ html {
 
 body {
   --notion-font:
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
-    'Helvetica Neue', 'Noto Sans', sans-serif;
+    'Helvetica Neue', Helvetica, Arial, sans-serif !important;
   font-family: var(--notion-font);
   overflow-x: hidden;
+}
+
+.dark-mode {
+  /* Colori principali del tema scuro */
+  --bg-color: #021FB9 !important; /* Sfondo scuro profondo */
+  --fg-color: #FFD500 !important; /* Testo chiaro per contrasto */
+  
+  /* Colore dei link in dark mode (opzionale) */
+  --notion-link-color: #B9021F !important; 
+}
+
+/* Regola extra per forzare Helvetica su ogni singolo blocco */
+body {
+  font-family: var(--notion-font);
 }
 
 .static-tweet blockquote {

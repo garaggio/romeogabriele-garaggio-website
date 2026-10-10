@@ -1,31 +1,49 @@
 /* --- TEMA GRAFICO: GARAGGIO STUDIO --- */
 
 :root, .dark-mode {
-  /* Tipografia pulita e geometrica, in linea con il biglietto */
-  --notion-font: 'Helvetica Neue' !important;
+  /* Tipografia */
+  --notion-font: 'Helvetica Neue', Helvetica, sans-serif !important;
 
   /* Sfondo globale: Blu acceso */
-  --bg-color: #172195 !important; 
+  --bg-color: #021FB9 !important; 
   
-  /* Testo principale: Giallo oro */
-  --fg-color: #f7ca18 !important; 
+  /* Testo principale (paragrafi, liste, ecc.): Giallo oro */
+  --fg-color: #FFD500 !important; 
   
-  /* Colore dei link e testi secondari: Bianco */
-  --notion-link-color: #B9021F !important; 
+  /* NUOVO: Colore dei link in rosso */
+  --notion-link-color: #C41E3A !important; 
   
-  /* Colore di sfondo per i blocchi in evidenza (es. quote o callout) */
-  --notion-item-bg-hover: rgba(247, 202, 24, 0.1) !important;
+  /* Effetto hover (quando passi col mouse sopra alcuni blocchi) in rosso trasparente */
+  --notion-item-bg-hover: #C41E3A !important;
 }
 
-/* Regole globali per forzare i colori e i font su tutta la pagina */
-body {
-  font-family: var(--notion-font) !important;
-  background-color: var(--bg-color) !important;
-  color: var(--fg-color) !important;
-}
 
-/* Forza i titoli (H1, H2, H3) ad avere lo stesso giallo acceso del logo */
+
+/* NUOVO: Forza i titoli (H1, H2, H3) ad essere rossi invece che gialli */
 .notion-h1, .notion-h2, .notion-h3 {
-  color: var(--fg-color) !important;
-  text-transform: uppercase !important; /* Trasforma i titoli in maiuscolo per richiamare il design */
+  color: #C41E3A !important;
+  text-transform: uppercase !important;
 }
+
+/* --- FORZA IL ROSSO SU LINK E BOTTONI --- */
+
+/* 1. Colpisce tutti i link interni, esterni e i link alle pagine Notion */
+.notion-link, 
+.notion-page-link, 
+a.notion-link {
+  color: #C41E3A !important;
+  text-decoration-color: #C41E3A !important; /* Colora anche la sottolineatura */
+  border-bottom-color: #C41E3A !important;
+}
+
+/* 2. Stato hover: diventa ROSSO solo quando il cursore ci passa sopra */
+.notion-link:hover, 
+.notion-page-link:hover, 
+a.notion-link:hover,
+.notion-button:hover,
+.notion-semantic-string .link:hover {
+  color: #C41E3A !important;
+  text-decoration-color: #C41E3A !important;
+  border-bottom-color: #C41E3A !important;
+}
+

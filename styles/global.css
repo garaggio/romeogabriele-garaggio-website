@@ -20,15 +20,6 @@ body {
   overflow-x: hidden;
 }
 
-.dark-mode {
-  /* Colori principali del tema scuro */
-  --bg-color: #021FB9 !important; /* Sfondo scuro profondo */
-  --fg-color: #FFD500 !important; /* Testo chiaro per contrasto */
-  
-  /* Colore dei link in dark mode (opzionale) */
-  --notion-link-color: #B9021F !important; 
-}
-
 /* Regola extra per forzare Helvetica su ogni singolo blocco */
 body {
   font-family: var(--notion-font);

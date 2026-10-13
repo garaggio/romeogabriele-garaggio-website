@@ -1,86 +1,122 @@
 import * as React from 'react'
 
-import * as config from '@/lib/config'
-import { GitHubIcon } from '@/lib/icons/github'
-import { LinkedInIcon } from '@/lib/icons/linkedin'
-import { MoonIcon } from '@/lib/icons/moon'
-import { SunIcon } from '@/lib/icons/sun'
-import { TwitterIcon } from '@/lib/icons/twitter'
-import { useDarkMode } from '@/lib/use-dark-mode'
+const STRIP = ['−', '+', 'you', 'tu']
 
-import styles from './styles.module.css'
+// Spostiamo la funzione Date() fuori dal render per rispettare la "React purity"
+const currentYear = new Date().getFullYear()
 
 export function FooterImpl() {
-  const { hasMounted, isDarkMode, toggleDarkMode } = useDarkMode()
-  const currentYear = new Date().getFullYear()
+  const stripRef = React.useRef<HTMLDivElement>(null)
+  const barRef = React.useRef<HTMLDivElement>(null)
 
-  const onToggleDarkMode = React.useCallback(
-    (e: any) => {
-      e.preventDefault()
-      toggleDarkMode()
-    },
-    [toggleDarkMode]
-  )
+  React.useEffect(() => {
+    const strip = stripRef.current
+    const bar = barRef.current
+    if (!strip || !bar) return
+
+    let observer: IntersectionObserver | undefined
+
+    const setup = () => {
+      observer?.disconnect()
+
+      // la barra fissa copia posizione e larghezza della striscia in fondo
+      const { left, width } = strip.getBoundingClientRect()
+      bar.style.left = `${left}px`
+      bar.style.width = `${width}px`
+      bar.classList.add('is-ready')
+
+      // quando la striscia in fondo raggiunge la barra fissa, la barra sparisce
+      const offset = Math.max(
+        0,
+        window.innerHeight - bar.getBoundingClientRect().bottom
+      )
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          const limit = entry.rootBounds?.bottom ?? window.innerHeight
+          document.body.classList.toggle(
+            'g-strip-landed',
+            entry.boundingClientRect.bottom <= limit
+          )
+        },
+        { rootMargin: `0px 0px -${offset}px 0px`, threshold: [0, 1] }
+      )
+      observer.observe(strip)
+    }
+
+    setup()
+    window.addEventListener('resize', setup)
+
+    return () => {
+      window.removeEventListener('resize', setup)
+      observer?.disconnect()
+      document.body.classList.remove('g-strip-landed')
+    }
+  }, [])
 
   return (
-    <footer className={styles.footer}>
-      <div className={styles.copyright}>
-        Copyright {currentYear} {config.author}
+    <>
+      {/* barra che accompagna lo scorrimento */}
+      <div className='g-strip g-strip-fixed' ref={barRef} aria-hidden='true'>
+        {STRIP.map((s) => (
+          <span key={s}>{s}</span>
+        ))}
       </div>
 
-      <div className={styles.settings}>
-        {hasMounted && (
-          <a
-            className={styles.toggleDarkMode}
-            href='#'
-            role='button'
-            onClick={onToggleDarkMode}
-            title='Toggle dark mode'
-          >
-            {isDarkMode ? <MoonIcon /> : <SunIcon />}
-          </a>
-        )}
-      </div>
+      {/* Usiamo il tag semantico <footer> invece del div generico */}
+      <footer className='g-footer'>
+        {/* striscia in fondo alla pagina: la barra fissa si ferma qui */}
+        <div className='g-strip' ref={stripRef} aria-hidden='true'>
+          {STRIP.map((s) => (
+            <span key={s}>{s}</span>
+          ))}
+        </div>
 
-      <div className={styles.social}>
-        {config.twitter && (
-          <a
-            className={styles.twitter}
-            href={`https://x.com/${config.twitter}`}
-            title={`X @${config.twitter}`}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
-            <TwitterIcon />
-          </a>
-        )}
+        <div className='g-contacts'>
+          <p className='g-contacts-title'>Benvenuto a bordo</p>
 
-        {config.github && (
-          <a
-            className={styles.github}
-            href={`https://github.com/${config.github}`}
-            title={`GitHub @${config.github}`}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
-            <GitHubIcon />
-          </a>
-        )}
+          <ul>
+            <li>
+              <a href='mailto:romeogabriele.studio@proton.me'>
+                romeogabriele.studio@proton.me
+              </a>
+            </li>
+            <li>
+              <a href='tel:+393488199393'>+39 348 81 99 393</a>
+            </li>
+            <li>
+              <a
+                href='https://linktr.ee/garaggio'
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                linktr.ee/garaggio
+              </a>
+            </li>
+          </ul>
 
-        {config.linkedin && (
-          <a
-            className={styles.linkedin}
-            href={`https://www.linkedin.com/in/${config.linkedin}`}
-            title={`LinkedIn ${config.author}`}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
-            <LinkedInIcon />
-          </a>
-        )}
-      </div>
-    </footer>
+          <p className='g-contacts-credit'>
+            © {currentYear} Romeo Gabriele · Garaggio. Sito costruito con{' '}
+            <a
+              href='https://github.com/transitive-bullshit/nextjs-notion-starter-kit'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              Next.js Notion Starter Kit
+            </a>{' '}
+            di Travis Fischer e{' '}
+            <a
+              href='https://github.com/NotionX/react-notion-x'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              react-notion-x
+            </a>
+          </p>
+        </div>
+      </footer>
+    </>
   )
 }
 
+// React.memo ottimizza le performance evitando re-render inutili del footer
 export const Footer = React.memo(FooterImpl)

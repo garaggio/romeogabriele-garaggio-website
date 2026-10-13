@@ -1,49 +1,539 @@
-/* --- TEMA GRAFICO: GARAGGIO STUDIO --- */
+/* ==========================================================================
+   GARAGGIO · stile per nextjs-notion-starter-kit (react-notion-x)
 
-:root, .dark-mode {
-  /* Tipografia */
-  --notion-font: 'Helvetica Neue', Helvetica, sans-serif !important;
+   COME USARLO
+   Incolla tutto IN FONDO a styles/notion.css (il kit lo carica già, non serve
+   toccare altro), poi commit e push: Vercel ripubblica da solo.
 
-  /* Sfondo globale: Blu acceso */
-  --bg-color: #021FB9 !important; 
-  
-  /* Testo principale (paragrafi, liste, ecc.): Giallo oro */
-  --fg-color: #FFD500 !important; 
-  
-  /* NUOVO: Colore dei link in rosso */
-  --notion-link-color: #C41E3A !important; 
-  
-  /* Effetto hover (quando passi col mouse sopra alcuni blocchi) in rosso trasparente */
-  --notion-item-bg-hover: #C41E3A !important;
+   COME LO LEGGE NOTION
+   - Cartella            → una sotto-pagina (link di pagina). Metti come icona 📁.
+   - Sottocartella       → una sotto-pagina dentro un'altra. Il percorso lo disegna
+                           da solo la barra in alto: Garaggio / Progetti / Jam(QK).
+   - File della scheda   → un blocco "toggle" (Idea, Sviluppo, Risorse, Esito…).
+   - Nastro giallo       → un blocco "callout" con sfondo giallo.
+   - Sali a bordo        → un blocco "bookmark".
+   - Elenco progetti     → una galleria, ogni scheda diventa una cartella.
+
+   I selettori generici (.notion-title, .notion-page-link, details.notion-toggle,
+   .notion-collection-card, le variabili) sono quelli di react-notion-x.
+   Verifica nel browser (tasto destro → Ispeziona) questi: .index-page,
+   .notion-callout, .notion-bookmark, .notion-nav-header, .breadcrumb, .spacer.
+   Se uno non agisce, copia il nome vero della classe e sostituiscilo qui.
+   ========================================================================== */
+
+:root,
+body.dark-mode {
+  /* tavolozza del biglietto */
+  --g-yellow: #ffd83a;
+  --g-red: #b3121c;
+  --g-green: #3a9b5c;
+  --g-orange: #ee6a1f;
+  --g-blue: #1428c8;
+  --g-chevron: #6cbcec;
+  --g-line: rgba(255, 255, 255, 0.24);
+  --g-panel: rgba(4, 8, 70, 0.55);
+
+  /* variabili di react-notion-x: stesso aspetto in modalità chiara e scura */
+  --fg-color: rgba(238, 242, 255, 0.94);
+  --fg-color-0: rgba(238, 242, 255, 0.14);
+  --fg-color-1: rgba(238, 242, 255, 0.28);
+  --fg-color-2: rgba(238, 242, 255, 0.5);
+  --fg-color-3: rgba(238, 242, 255, 0.72);
+  --fg-color-4: #fff;
+  --fg-color-5: rgba(238, 242, 255, 0.08);
+  --fg-color-6: #fff;
+  --fg-color-icon: #fff;
+  --bg-color: #0a1a9e;
+  --bg-color-0: rgba(255, 255, 255, 0.12);
+  --bg-color-1: rgba(4, 8, 70, 0.55);
+  --bg-color-2: rgba(255, 255, 255, 0.12);
+  --select-color-0: var(--g-yellow);
+  --select-color-1: rgba(255, 216, 58, 0.35);
+  --notion-yellow_background: var(--g-yellow);
+  --notion-yellow_background_co: var(--g-yellow);
+  --notion-font: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --notion-max-width: 900px;
+  --notion-header-height: 52px;
+  --notion-corner-radius: 0;
+  color-scheme: dark;
 }
 
+/* ---------- Sfondo e cornice ---------- */
 
-
-/* NUOVO: Forza i titoli (H1, H2, H3) ad essere rossi invece che gialli */
-.notion-h1, .notion-h2, .notion-h3 {
-  color: #C41E3A !important;
-  text-transform: uppercase !important;
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(110% 80% at 100% 100%, rgba(58, 15, 18, 0.7) 0%, transparent 60%),
+    linear-gradient(135deg, #0a22c8 0%, #0b1aa6 48%, #0a1260 100%);
+  background-attachment: fixed;
 }
 
-/* --- FORZA IL ROSSO SU LINK E BOTTONI --- */
-
-/* 1. Colpisce tutti i link interni, esterni e i link alle pagine Notion */
-.notion-link, 
-.notion-page-link, 
-a.notion-link {
-  color: #C41E3A !important;
-  text-decoration-color: #C41E3A !important; /* Colora anche la sottolineatura */
-  border-bottom-color: #C41E3A !important;
+body .notion-app {
+  background: transparent;
 }
 
-/* 2. Stato hover: diventa ROSSO solo quando il cursore ci passa sopra */
-.notion-link:hover, 
-.notion-page-link:hover, 
-a.notion-link:hover,
-.notion-button:hover,
-.notion-semantic-string .link:hover {
-  color: #C41E3A !important;
-  text-decoration-color: #C41E3A !important;
-  border-bottom-color: #C41E3A !important;
+/* cornice sottile fissa attorno allo schermo, come sul biglietto */
+body::before {
+  content: "";
+  position: fixed;
+  inset: clamp(8px, 2vw, 24px);
+  border: 1px solid var(--g-line);
+  pointer-events: none;
+  z-index: 200;
 }
 
+/* striscia colorata sottile in fondo allo schermo */
+.notion-app::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--g-red) 0 25%,
+    var(--g-green) 25% 50%,
+    var(--g-orange) 50% 75%,
+    var(--g-blue) 75% 100%
+  );
+  pointer-events: none;
+  z-index: 201;
+}
+
+/* ---------- Barra in alto: puntini e percorso ---------- */
+
+.notion-header,
+.dark-mode .notion-header {
+  background: rgba(10, 26, 150, 0.72);
+  border-bottom: 1px solid var(--g-line);
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+}
+
+.notion-nav-header::before {
+  content: "";
+  flex: none;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin: 0 3rem 0 0.5rem;
+  border-radius: 50%;
+  background: #c1121f;
+  box-shadow: 1.15rem 0 0 #f2c200, 2.3rem 0 0 #0f9d58;
+}
+
+.notion-nav-header .breadcrumb {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  color: var(--fg-color-3);
+}
+
+.notion-nav-header .breadcrumb.active {
+  background: #fff;
+  color: #000;
+}
+
+.notion-nav-header .spacer {
+  color: var(--g-chevron);
+}
+
+/* ---------- Titoli ---------- */
+
+.notion-title {
+  font-weight: 300;
+  letter-spacing: -0.015em;
+}
+
+.notion-title::before {
+  content: ">";
+  margin-right: 0.3em;
+  color: var(--g-chevron);
+  font-weight: 400;
+}
+
+.notion-h {
+  letter-spacing: 0.01em;
+}
+
+/* home: titolo grande e centrato, con il cursore che lampeggia poche volte */
+.index-page .notion-title {
+  text-align: center;
+  font-size: clamp(2.2rem, 8vw, 5rem);
+  line-height: 1.05;
+}
+
+.index-page .notion-title::after {
+  content: "";
+  display: inline-block;
+  width: 0.3em;
+  height: 0.3em;
+  margin-left: 0.3em;
+  border-radius: 50%;
+  background: #c1121f;
+  vertical-align: 0.08em;
+  animation: g-blink 3.5s ease-in-out infinite;
+}
+
+@keyframes g-blink {
+  50% {
+    opacity: 0.1;
+  }
+}
+
+/* ---------- Cartelle: sotto-pagine ---------- */
+
+.notion-page-link {
+  align-items: center;
+  height: auto;
+  min-height: 2.6rem;
+  margin: 0.25rem 0;
+  padding: 0.2rem 0.8rem;
+  background: var(--g-panel);
+  border: 1px solid transparent;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.notion-page-link::before {
+  content: ">";
+  margin-right: 0.6rem;
+  color: var(--g-chevron);
+}
+
+.notion-page-link:hover {
+  background: var(--g-panel);
+  border-color: var(--g-line);
+}
+
+.notion-page-text {
+  margin: 0;
+  border-bottom: 0;
+}
+
+/* nelle gallerie le schede hanno il loro stile: niente freccia né cornice */
+.notion-collection-card .notion-page-link {
+  min-height: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  letter-spacing: 0.06em;
+}
+
+.notion-collection-card .notion-page-link::before {
+  content: none;
+}
+
+/* ---------- File della scheda: blocchi toggle ---------- */
+
+details.notion-toggle > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  background: var(--g-panel);
+  border: 1px solid transparent;
+  list-style: none;
+  cursor: pointer;
+}
+
+details.notion-toggle > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.notion-toggle > summary::marker {
+  content: "";
+}
+
+details.notion-toggle > summary::before {
+  content: ">";
+  color: var(--g-chevron);
+  transition: transform 0.2s;
+}
+
+details.notion-toggle[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+details.notion-toggle > summary:hover {
+  border-color: var(--g-line);
+}
+
+details.notion-toggle > div {
+  margin: 0.25rem 0 0.8rem 1.2rem;
+  padding-left: 1rem;
+  border-left: 1px dashed var(--g-line);
+}
+
+/* ---------- Nastro giallo: callout con sfondo giallo ---------- */
+
+.notion-callout {
+  border: 1px solid var(--g-line);
+  background: var(--g-panel);
+}
+
+.notion-callout.notion-yellow_background {
+  border: 0;
+  border-block: 3px dashed var(--g-red);
+  background: var(--g-yellow);
+  color: var(--g-red);
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-1.5deg);
+}
+
+/* ---------- Pulsante: bookmark ---------- */
+
+.notion-bookmark {
+  display: inline-flex;
+  justify-content: center;
+  width: auto;
+  min-width: 14rem;
+  padding: 0.9rem 2.6rem;
+  background: var(--g-yellow);
+  border: 0;
+  clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%);
+  color: var(--g-red);
+  font-weight: 800;
+  text-align: center;
+}
+
+.notion-bookmark:hover {
+  background: #fff;
+}
+
+.notion-bookmark-description,
+.notion-bookmark-link {
+  display: none;
+}
+
+/* ---------- Galleria dei progetti: schede-cartella ---------- */
+
+.notion-collection-card {
+  background: var(--g-panel);
+  border: 1px solid var(--g-line);
+  border-radius: 0;
+  box-shadow: none;
+  transition: border-color 0.15s;
+}
+
+.notion-collection-card:hover {
+  border-color: var(--g-yellow);
+}
+
+.notion-collection-card-body {
+  padding: 0.9rem;
+}
+
+.notion-collection-card-property {
+  color: var(--fg-color-3);
+  font-size: 0.85rem;
+}
+
+/* ---------- Testo corrente ---------- */
+
+.notion-link {
+  border-bottom: 1px dashed var(--g-yellow);
+  color: var(--g-yellow);
+  opacity: 1;
+}
+
+.notion-link:hover {
+  border-bottom-style: solid;
+}
+
+.notion-inline-code {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--g-yellow);
+}
+
+.notion-quote {
+  border-left: 3px solid var(--g-yellow);
+}
+
+.notion-hr {
+  border-bottom: 1px dashed var(--g-line);
+}
+
+/* ---------- Accessibilità e schermi piccoli ---------- */
+
+.notion a:focus-visible,
+.notion summary:focus-visible {
+  outline: 2px solid var(--g-yellow);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .notion-page-link,
+  .notion-callout.notion-yellow_background {
+    letter-spacing: 0.06em;
+  }
+
+  .notion-nav-header::before {
+    margin-right: 2.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .index-page .notion-title::after {
+    animation: none;
+  }
+
+  details.notion-toggle > summary::before,
+  .notion-collection-card {
+    transition: none;
+  }
+}
+
+/* la tua cartella accanto ai titoli 1, 2 e 3 */
+.notion-h1::before,
+.notion-h2::before,
+.notion-h3::before {
+  content: "";
+  display: inline-block;
+  width: 1.15em;
+  height: 0.85em;
+  margin-right: 0.45em;
+  background: url("/cartella.png") center / contain no-repeat;
+  vertical-align: -0.05em;
+}
+
+.notion-title::before,
+.notion-page-link::before,
+details.notion-toggle > summary::before {
+  content: "";
+  display: inline-block;
+  flex: none;
+  width: 0.55em;
+  height: 0.62em;
+  margin-right: 0.6em;
+  background: var(--g-chevron);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+/* ---------- Striscia colorata e contatti ---------- */
+
+:root {
+  --g-inset: clamp(0px, 2vw, 24px); /* stessa distanza della cornice */
+}
+
+.g-footer {
+  width: 100%;
+  margin-top: clamp(3rem, 8vw, 6rem);
+  padding-bottom: calc(var(--g-inset) + 0.75rem);
+}
+
+.g-strip {
+  display: flex;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+}
+
+.g-strip span {
+  flex: 1;
+  padding: 0.3rem 0;
+  text-align: center;
+}
+
+/* testo scelto per il contrasto: bianco su rosso e blu, nero su verde e arancio */
+.g-strip span:nth-child(1) {
+  background: var(--g-red);
+  color: #fff;
+}
+
+.g-strip span:nth-child(2) {
+  background: var(--g-green);
+  color: #000;
+}
+
+.g-strip span:nth-child(3) {
+  background: var(--g-orange);
+  color: #000;
+}
+
+.g-strip span:nth-child(4) {
+  background: var(--g-blue);
+  color: #fff;
+}
+
+/* la barra che resta a schermo: posizione e larghezza le imposta il componente */
+.g-strip-fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--g-inset);
+  z-index: 201;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.g-strip-fixed.is-ready {
+  visibility: visible;
+}
+
+/* quando la striscia in fondo la raggiunge, la barra fissa sparisce */
+body.g-strip-landed .g-strip-fixed {
+  visibility: hidden;
+}
+
+/* ---------- Contatti ---------- */
+
+.g-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem 2rem;
+  padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 2rem;
+  background: var(--g-panel);
+  border: 1px solid var(--g-line);
+  border-top: 0;
+}
+
+.g-contacts-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
+
+.g-contacts ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.g-contacts a {
+  border-bottom: 1px dashed var(--g-yellow);
+  color: var(--g-yellow);
+  text-decoration: none;
+}
+
+.g-contacts a:hover {
+  border-bottom-style: solid;
+}
+
+.g-contacts a:focus-visible {
+  outline: 2px solid var(--g-yellow);
+  outline-offset: 3px;
+}
+
+.g-contacts-credit {
+  width: 100%;
+  margin: 0;
+  color: var(--fg-color-3);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .g-strip {
+    letter-spacing: 0.2em;
+  }
+}

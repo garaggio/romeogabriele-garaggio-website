@@ -11,7 +11,8 @@ export default siteConfig({
   // basic site info (required)
   name: 'Romeo Gabriele | Studio Garaggio',
   domain: 'romeogabrielegaraggio.it',
-  author: 'Romeo Gabriele',
+  author:
+    'Romeo Gabriele; costruito a partire dalla repository GitHub nextjs-notion-starter-kit (MIT) di Travis Fischer',
 
   // open graph metadata (optional)
   description: 'website Biografia',

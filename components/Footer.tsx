@@ -32,6 +32,9 @@ export function FooterImpl() {
       )
       observer = new IntersectionObserver(
         ([entry]) => {
+          // Aggiungi questo controllo per garantire a TypeScript che entry sia definito
+          if (!entry) return
+
           const limit = entry.rootBounds?.bottom ?? window.innerHeight
           document.body.classList.toggle(
             'g-strip-landed',

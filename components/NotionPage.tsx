@@ -22,9 +22,7 @@ import { mapImageUrl } from '@/lib/map-image-url'
 import { mapPageUrl } from '@/lib/map-page-url'
 import { searchNotion } from '@/lib/search-notion'
 import { useDarkMode } from '@/lib/use-dark-mode'
-
 import { Footer } from './Footer'
-import { GitHubShareButton } from './GitHubShareButton'
 import { NotionPageHeader } from './NotionPageHeader'
 import { PageAside } from './PageAside'
 
@@ -271,8 +269,6 @@ export function NotionPage({
         pageAside={pageAside}
         footer={<Footer />}
       />
-
-      <GitHubShareButton />
     </>
   )
 }

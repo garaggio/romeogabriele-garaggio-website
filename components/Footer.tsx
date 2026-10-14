@@ -86,15 +86,6 @@ export function FooterImpl() {
             <li>
               <a href='tel:+393488199393'>+39 348 81 99 393</a>
             </li>
-            <li>
-              <a
-                href='https://linktr.ee/garaggio'
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                linktr.ee/garaggio
-              </a>
-            </li>
           </ul>
 
           <p className='g-contacts-credit'>

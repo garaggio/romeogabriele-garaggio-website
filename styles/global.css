@@ -1,24 +1,16 @@
 /* ==========================================================================
-   GARAGGIO · stile per nextjs-notion-starter-kit (react-notion-x)
+   GARAGGIO · stile completo per nextjs-notion-starter-kit (react-notion-x)
 
    COME USARLO
-   Incolla tutto IN FONDO a styles/notion.css (il kit lo carica già, non serve
-   toccare altro), poi commit e push: Vercel ripubblica da solo.
+   Sostituisci TUTTO il contenuto del file da cui hai copiato (quello con le
+   regole Garaggio) con questo. Non serve aggiungere altro.
 
-   COME LO LEGGE NOTION
-   - Cartella            → una sotto-pagina (link di pagina). Metti come icona 📁.
-   - Sottocartella       → una sotto-pagina dentro un'altra. Il percorso lo disegna
-                           da solo la barra in alto: Garaggio / Progetti / Jam(QK).
-   - File della scheda   → un blocco "toggle" (Idea, Sviluppo, Risorse, Esito…).
-   - Nastro giallo       → un blocco "callout" con sfondo giallo.
-   - Sali a bordo        → un blocco "bookmark".
-   - Elenco progetti     → una galleria, ogni scheda diventa una cartella.
-
-   I selettori generici (.notion-title, .notion-page-link, details.notion-toggle,
-   .notion-collection-card, le variabili) sono quelli di react-notion-x.
-   Verifica nel browser (tasto destro → Ispeziona) questi: .index-page,
-   .notion-callout, .notion-bookmark, .notion-nav-header, .breadcrumb, .spacer.
-   Se uno non agisce, copia il nome vero della classe e sostituiscilo qui.
+   QUESTA VERSIONE
+   - tutto schermo: niente margini e niente bande attorno alla pagina
+   - sfondo su un livello fisso (niente sfarfallii mentre scorri)
+   - tolta la cornice sottile attorno allo schermo
+   - tolta la vecchia barra colorata sottile che stava sempre in fondo
+   - la barra con le scritte che ti segue resta, e si ferma sulla striscia in fondo
    ========================================================================== */
 
 :root,
@@ -32,6 +24,7 @@ body.dark-mode {
   --g-chevron: #6cbcec;
   --g-line: rgba(255, 255, 255, 0.24);
   --g-panel: rgba(4, 8, 70, 0.55);
+  --g-inset: 0px; /* distanza della barra e del footer dal bordo dello schermo */
 
   /* variabili di react-notion-x: stesso aspetto in modalità chiara e scura */
   --fg-color: rgba(238, 242, 255, 0.94);
@@ -58,47 +51,41 @@ body.dark-mode {
   color-scheme: dark;
 }
 
-/* ---------- Sfondo e cornice ---------- */
+/* ---------- Tutto schermo: niente margini, niente bande bianche ---------- */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: #0a1260; /* se qualcosa non è coperto, resta blu e non bianco */
+}
+
+/* ---------- Sfondo ---------- */
 
 body {
   min-height: 100vh;
+  overflow-x: clip; /* nessuna barra di scorrimento orizzontale */
+}
+
+/* lo sfondo sta su un livello fisso a parte: non si ridisegna mentre scorri
+   (prima era "background-attachment: fixed", che in Safari causa sfarfallii) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(110% 80% at 100% 100%, rgba(58, 15, 18, 0.7) 0%, transparent 60%),
     linear-gradient(135deg, #0a22c8 0%, #0b1aa6 48%, #0a1260 100%);
-  background-attachment: fixed;
+  transform: translateZ(0);
 }
 
 body .notion-app {
   background: transparent;
-}
-
-/* cornice sottile fissa attorno allo schermo, come sul biglietto */
-body::before {
-  content: "";
-  position: fixed;
-  inset: clamp(8px, 2vw, 24px);
-  border: 1px solid var(--g-line);
-  pointer-events: none;
-  z-index: 200;
-}
-
-/* striscia colorata sottile in fondo allo schermo */
-.notion-app::after {
-  content: "";
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 6px;
-  background: linear-gradient(
-    90deg,
-    var(--g-red) 0 25%,
-    var(--g-green) 25% 50%,
-    var(--g-orange) 50% 75%,
-    var(--g-blue) 75% 100%
-  );
-  pointer-events: none;
-  z-index: 201;
 }
 
 /* ---------- Barra in alto: puntini e percorso ---------- */
@@ -144,18 +131,24 @@ body::before {
   letter-spacing: -0.015em;
 }
 
-.notion-title::before {
-  content: ">";
-  margin-right: 0.3em;
-  color: var(--g-chevron);
-  font-weight: 400;
-}
-
 .notion-h {
   letter-spacing: 0.01em;
 }
 
-/* home: titolo grande e centrato, con il cursore che lampeggia poche volte */
+/* la tua cartella accanto ai titoli 1, 2 e 3 */
+.notion-h1::before,
+.notion-h2::before,
+.notion-h3::before {
+  content: "";
+  display: inline-block;
+  width: 1.15em;
+  height: 0.85em;
+  margin-right: 0.45em;
+  background: url("/cartella.png") center / contain no-repeat;
+  vertical-align: -0.05em;
+}
+
+/* home: titolo grande e centrato, con la luce di registrazione che respira */
 .index-page .notion-title {
   text-align: center;
   font-size: clamp(2.2rem, 8vw, 5rem);
@@ -180,6 +173,21 @@ body::before {
   }
 }
 
+/* ---------- Freccia a triangolo (play): titolo, cartelle e toggle ---------- */
+
+.notion-title::before,
+.notion-page-link::before,
+details.notion-toggle > summary::before {
+  content: "";
+  display: inline-block;
+  flex: none;
+  width: 0.55em;
+  height: 0.62em;
+  margin-right: 0.6em;
+  background: var(--g-chevron);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
 /* ---------- Cartelle: sotto-pagine ---------- */
 
 .notion-page-link {
@@ -193,12 +201,6 @@ body::before {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-
-.notion-page-link::before {
-  content: ">";
-  margin-right: 0.6rem;
-  color: var(--g-chevron);
 }
 
 .notion-page-link:hover {
@@ -246,8 +248,6 @@ details.notion-toggle > summary::marker {
 }
 
 details.notion-toggle > summary::before {
-  content: ">";
-  color: var(--g-chevron);
   transition: transform 0.2s;
 }
 
@@ -357,72 +357,13 @@ details.notion-toggle > div {
   border-bottom: 1px dashed var(--g-line);
 }
 
-/* ---------- Accessibilità e schermi piccoli ---------- */
+/* ---------- Striscia colorata e contatti (a tutta larghezza) ---------- */
 
-.notion a:focus-visible,
-.notion summary:focus-visible {
-  outline: 2px solid var(--g-yellow);
-  outline-offset: 2px;
-}
-
-@media (max-width: 640px) {
-  .notion-page-link,
-  .notion-callout.notion-yellow_background {
-    letter-spacing: 0.06em;
-  }
-
-  .notion-nav-header::before {
-    margin-right: 2.6rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .index-page .notion-title::after {
-    animation: none;
-  }
-
-  details.notion-toggle > summary::before,
-  .notion-collection-card {
-    transition: none;
-  }
-}
-
-/* la tua cartella accanto ai titoli 1, 2 e 3 */
-.notion-h1::before,
-.notion-h2::before,
-.notion-h3::before {
-  content: "";
-  display: inline-block;
-  width: 1.15em;
-  height: 0.85em;
-  margin-right: 0.45em;
-  background: url("/cartella.png") center / contain no-repeat;
-  vertical-align: -0.05em;
-}
-
-.notion-title::before,
-.notion-page-link::before,
-details.notion-toggle > summary::before {
-  content: "";
-  display: inline-block;
-  flex: none;
-  width: 0.55em;
-  height: 0.62em;
-  margin-right: 0.6em;
-  background: var(--g-chevron);
-  clip-path: polygon(0 0, 100% 50%, 0 100%);
-}
-
-/* ---------- Striscia colorata e contatti ---------- */
-
-:root {
-  --g-inset: clamp(0px, 2vw, 24px); /* stessa distanza della cornice */
-}
-
+/* a tutta larghezza dello schermo, anche se il contenitore del kit è più stretto */
 .g-footer {
-  width: 100%;
-  margin-top: clamp(3rem, 8vw, 6rem);
-  padding-bottom: calc(var(--g-inset) + 0.75rem);
+  width: 100vw;
+  margin: clamp(3rem, 8vw, 6rem) 0 0 calc(50% - 50vw);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .g-strip {
@@ -461,7 +402,7 @@ details.notion-toggle > summary::before {
   color: #fff;
 }
 
-/* la barra che resta a schermo: posizione e larghezza le imposta il componente */
+/* la barra che ti segue: posizione e larghezza le imposta il componente */
 .g-strip-fixed {
   position: fixed;
   left: 0;
@@ -476,7 +417,7 @@ details.notion-toggle > summary::before {
   visibility: visible;
 }
 
-/* quando la striscia in fondo la raggiunge, la barra fissa sparisce */
+/* quando la striscia in fondo la raggiunge, la barra che ti segue sparisce */
 body.g-strip-landed .g-strip-fixed {
   visibility: hidden;
 }
@@ -491,8 +432,6 @@ body.g-strip-landed .g-strip-fixed {
   gap: 1rem 2rem;
   padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 2rem;
   background: var(--g-panel);
-  border: 1px solid var(--g-line);
-  border-top: 0;
 }
 
 .g-contacts-title {
@@ -532,8 +471,36 @@ body.g-strip-landed .g-strip-fixed {
   font-size: 0.8rem;
 }
 
+/* ---------- Accessibilità e schermi piccoli ---------- */
+
+.notion a:focus-visible,
+.notion summary:focus-visible {
+  outline: 2px solid var(--g-yellow);
+  outline-offset: 2px;
+}
+
 @media (max-width: 640px) {
+  .notion-page-link,
+  .notion-callout.notion-yellow_background {
+    letter-spacing: 0.06em;
+  }
+
+  .notion-nav-header::before {
+    margin-right: 2.6rem;
+  }
+
   .g-strip {
     letter-spacing: 0.2em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .index-page .notion-title::after {
+    animation: none;
+  }
+
+  details.notion-toggle > summary::before,
+  .notion-collection-card {
+    transition: none;
   }
 }

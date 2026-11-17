@@ -43,16 +43,34 @@ export default siteConfig({
 
   // whether to use the default notion navigation style or a custom one with links to
   // important pages. To use `navigationLinks`, set `navigationStyle` to `custom`.
-  navigationStyle: 'default'
-  // navigationStyle: 'custom',
-  // navigationLinks: [
-  //   {
-  //     title: 'About',
-  //     pageId: 'f1199d37579b41cbabfc0b5174f4256a'
-  //   },
-  //   {
-  //     title: 'Contact',
-  //     pageId: '6a29ebcb935a4f0689fe661ab5f3b8d1'
-  //   }
-  // ]
+
+  navigationStyle: 'custom',
+
+  navigationLinks: [
+    {
+      title: 'Instagram',
+      url: 'https://www.instagram.com/garaggio',
+      icon: '/icons/instagram.svg'
+    },
+    {
+      title: 'YouTube',
+      url: 'https://www.youtube.com/channel/UCRkK2gW2MnCG7lZo-zDfOdg',
+      icon: '/icons/youtube.svg'
+    },
+    {
+      title: 'Spotify',
+      url: 'https://open.spotify.com/intl-it/artist/0KpjBENsyjX4Bxs7Mz455B',
+      icon: '/icons/spotify.svg'
+    },
+    {
+      title: 'Bandcamp',
+      url: 'https://studiogaraggio.bandcamp.com/',
+      icon: '/icons/bandcamp.svg'
+    },
+    {
+      title: 'GitHub',
+      url: 'https://github.com/garaggio',
+      icon: '/icons/github.svg'
+    }
+  ]
 })

@@ -1,31 +1,16 @@
 import type * as types from 'notion-types'
 import cs from 'classnames'
-import * as React from 'react'
-import { Breadcrumbs, Header, Search, useNotionContext } from 'react-notion-x'
+import { Header, useNotionContext } from 'react-notion-x'
 
-import { isSearchEnabled, navigationLinks, navigationStyle } from '@/lib/config'
-import { MoonIcon } from '@/lib/icons/moon'
-import { SunIcon } from '@/lib/icons/sun'
-import { useDarkMode } from '@/lib/use-dark-mode'
-
+import {
+  isSearchEnabled,
+  name,
+  navigationLinks,
+  navigationStyle,
+  rootNotionPageId
+} from '@/lib/config'
+import { SiteSearch } from './SiteSearch'
 import styles from './styles.module.css'
-
-function ToggleThemeButton() {
-  const { hasMounted, isDarkMode, toggleDarkMode } = useDarkMode()
-
-  const onToggleTheme = React.useCallback(() => {
-    toggleDarkMode()
-  }, [toggleDarkMode])
-
-  return (
-    <div
-      className={cs('breadcrumb', 'button', !hasMounted && styles.hidden)}
-      onClick={onToggleTheme}
-    >
-      {hasMounted && isDarkMode ? <MoonIcon /> : <SunIcon />}
-    </div>
-  )
-}
 
 export function NotionPageHeader({
   block
@@ -41,14 +26,40 @@ export function NotionPageHeader({
   return (
     <header className='notion-header'>
       <div className='notion-nav-header'>
-        <Breadcrumbs block={block} rootOnly={true} />
+        <components.PageLink
+          href={mapPageUrl(rootNotionPageId)}
+          className={cs('breadcrumb', 'button', 'g-home')}
+          title={name}
+        >
+          <span
+            className='g-nav-icon'
+            role='img'
+            aria-label='Home'
+            style={{
+              WebkitMaskImage: 'url(/icons/home.svg)',
+              maskImage: 'url(/icons/home.svg)'
+            }}
+          />
+        </components.PageLink>
 
         <div className='notion-nav-header-rhs breadcrumbs'>
           {navigationLinks
             ?.map((link, index) => {
-              if (!link?.pageId && !link?.url) {
-                return null
-              }
+              if (!link || (!link.pageId && !link.url)) return null
+
+              const content = link.icon ? (
+                <span
+                  className='g-nav-icon'
+                  role='img'
+                  aria-label={link.title}
+                  style={{
+                    WebkitMaskImage: `url(${link.icon})`,
+                    maskImage: `url(${link.icon})`
+                  }}
+                />
+              ) : (
+                link.title
+              )
 
               if (link.pageId) {
                 return (
@@ -57,26 +68,27 @@ export function NotionPageHeader({
                     key={index}
                     className={cs(styles.navLink, 'breadcrumb', 'button')}
                   >
-                    {link.title}
+                    {content}
                   </components.PageLink>
                 )
-              } else {
-                return (
-                  <components.Link
-                    href={link.url}
-                    key={index}
-                    className={cs(styles.navLink, 'breadcrumb', 'button')}
-                  >
-                    {link.title}
-                  </components.Link>
-                )
               }
+
+              return (
+                <components.Link
+                  href={link.url as string}
+                  key={index}
+                  className={cs(styles.navLink, 'breadcrumb', 'button')}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  title={link.title}
+                >
+                  {content}
+                </components.Link>
+              )
             })
             .filter(Boolean)}
 
-          <ToggleThemeButton />
-
-          {isSearchEnabled && <Search block={block} title={null} />}
+          {isSearchEnabled && <SiteSearch />}
         </div>
       </div>
     </header>

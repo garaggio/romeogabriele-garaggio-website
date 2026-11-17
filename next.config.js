@@ -1,5 +1,11 @@
 export default {
   staticPageGenerationTimeout: 300,
+  experimental: {
+    agentUpgrade: 'security'
+  },
+  // in sviluppo il sito si apre anche dall'indirizzo di rete del Mac (es. dal
+  // telefono): senza questo Next blocca i suoi script e la pagina resta ferma
+  allowedDevOrigins: ['192.168.0.157', '*.local'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'www.notion.so' },
@@ -10,6 +16,12 @@ export default {
       { protocol: 'https', hostname: 'abs.twimg.com' },
       { protocol: 'https', hostname: 'pbs.twimg.com' },
       { protocol: 'https', hostname: 's3.us-west-2.amazonaws.com' },
+      { protocol: 'https', hostname: 's3-us-west-2.amazonaws.com' },
+      {
+        protocol: 'https',
+        hostname: 'prod-files-secure.s3.us-west-2.amazonaws.com'
+      },
+      { protocol: 'https', hostname: 'file.notion.so' },
       { protocol: 'https', hostname: 'img.notionusercontent.com' }
     ],
     formats: ['image/avif', 'image/webp'],

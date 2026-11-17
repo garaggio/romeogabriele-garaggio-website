@@ -92,7 +92,7 @@
 
 .notion-collection-card-cover {
   border-radius: 16px;
-  box-shadow: 2px 2px 8px 4px rgba(15, 15, 15, 0.1);
+  box-shadow: var(--g-shadow);
 }
 
 .notion-collection-card-cover {
@@ -199,7 +199,7 @@
 }
 
 .notion-page-cover-wrapper {
-  box-shadow: 2px 2px 8px 4px rgba(15, 15, 15, 0.1);
+  box-shadow: var(--g-shadow);
 }
 
 @media only screen and (max-width: 1200px) {
@@ -350,7 +350,7 @@
 /* if you don't want rounded page icon images, remove this */
 .notion-page-icon-hero.notion-page-icon-image {
   border-radius: 50%;
-  box-shadow: 0 8px 40px 0 rgb(0 0 0 / 21%);
+  box-shadow: var(--g-shadow);
 }
 .notion-page-icon-hero.notion-page-icon-image span,
 .notion-page-icon-hero.notion-page-icon-image img {

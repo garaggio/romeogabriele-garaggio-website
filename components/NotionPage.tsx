@@ -216,7 +216,6 @@ export function NotionPage({
   const isBlogPost =
     block?.type === 'page' && block?.parent_table === 'collection'
 
-  const showTableOfContents = !!isBlogPost
   const minTableOfContentsItems = 3
 
   const pageAside = React.useMemo(
@@ -244,6 +243,34 @@ export function NotionPage({
     g.block = block
   }, [block, pageId, recordMap, site.rootNotionPageId, title])
 
+  // dalla ricerca: "/pagina#<id del blocco>" apre la pagina nel punto trovato
+  React.useEffect(() => {
+    const scrollToBlock = () => {
+      const id = decodeURIComponent(window.location.hash.slice(1))
+      if (!/^[\da-f]{32}$/i.test(id) || document.getElementById(id)) return
+
+      const target = document.querySelector<HTMLElement>(`.notion-block-${id}`)
+      if (!target) return
+
+      // se il punto è dentro un blocco a scomparsa chiuso, lo apriamo
+      for (let el = target.parentElement; el; el = el.parentElement) {
+        if (el instanceof HTMLDetailsElement) el.open = true
+      }
+
+      target.scrollIntoView({ block: 'center' })
+      target.classList.remove('g-search-target')
+      void target.offsetWidth
+      target.classList.add('g-search-target')
+
+      // le immagini che si caricano spostano il testo: ricentriamo una volta
+      setTimeout(() => target.scrollIntoView({ block: 'center' }), 500)
+    }
+
+    scrollToBlock()
+    window.addEventListener('hashchange', scrollToBlock)
+    return () => window.removeEventListener('hashchange', scrollToBlock)
+  }, [pageId])
+
   return (
     <>
       {isLiteMode && <BodyClassName className='notion-lite' />}
@@ -258,7 +285,7 @@ export function NotionPage({
         fullPage={!isLiteMode}
         previewImages={!!recordMap.preview_images}
         showCollectionViewDropdown={false}
-        showTableOfContents={showTableOfContents}
+        showTableOfContents={false}
         minTableOfContentsItems={minTableOfContentsItems}
         defaultPageIcon={config.defaultPageIcon}
         defaultPageCover={config.defaultPageCover}

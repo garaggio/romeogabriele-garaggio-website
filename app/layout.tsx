@@ -68,16 +68,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: [
-    {
-      media: '(prefers-color-scheme: light)',
-      color: '#fefffe'
-    },
-    {
-      media: '(prefers-color-scheme: dark)',
-      color: '#2d3439'
-    }
-  ]
+  // il blu della barra in alto, anche per la barra del browser sul telefono
+  themeColor: '#0a1a9e'
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

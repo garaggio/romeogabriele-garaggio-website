@@ -452,6 +452,63 @@ export function NotionPage({
     }
   }, [recordMap])
 
+  // Foto singole: l'indirizzo della foto passa al CSS (--g-photo-src) per
+  // disegnare dietro di lei l'alone di colore sfocato (vedi global.css)
+  React.useEffect(() => {
+    const cleanups: Array<() => void> = []
+    for (const figure of document.querySelectorAll<HTMLElement>(
+      '.notion-page figure.notion-asset-wrapper-image'
+    )) {
+      if (figure.closest('.notion-gallery_co, .notion-scrapbook_co')) continue
+      const box = figure.firstElementChild as HTMLElement | null
+      if (!box || !figure.querySelector('img')) continue
+      // la foto si cerca ogni volta: React può sostituire l'elemento <img>
+      const apply = () => {
+        const img = figure.querySelector('img')
+        const src = img && (img.currentSrc || img.getAttribute('src'))
+        if (src) {
+          box.style.setProperty(
+            '--g-photo-src',
+            `url("${src.replaceAll('"', '%22')}")`
+          )
+        }
+      }
+      apply()
+      // "load" non risale, ma si sente in fase di cattura
+      figure.addEventListener('load', apply, true)
+      cleanups.push(() => figure.removeEventListener('load', apply, true))
+    }
+    return () => {
+      for (const cleanup of cleanups) cleanup()
+    }
+  }, [recordMap])
+
+  // Indice su telefono: se anche una sola voce non entra in una riga, tutte
+  // le voci passano insieme a due righe (classe g-toc-two, vedi global.css).
+  // Si ricalcola quando cambia la larghezza dello schermo (es. rotazione).
+  React.useEffect(() => {
+    const phone = window.matchMedia('(max-width: 640px)')
+    const update = () => {
+      for (const toc of document.querySelectorAll<HTMLElement>(
+        '.notion-table-of-contents'
+      )) {
+        // si misura sempre in modalità una riga
+        toc.classList.remove('g-toc-two')
+        if (!phone.matches) continue
+        const tooLong = [
+          ...toc.querySelectorAll<HTMLElement>(
+            '.notion-table-of-contents-item-body'
+          )
+        ].some((body) => body.scrollWidth > body.clientWidth + 1)
+        toc.classList.toggle('g-toc-two', tooLong)
+      }
+    }
+    update()
+    void document.fonts?.ready.then(update)
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [recordMap])
+
   // Menu contestuale sopra una foto (segno 🖱️, vedi lib/notion.ts).
   // Il menu (il database segnato) si apre nel punto indicato in Notion;
   // un clic o il tasto destro sulla foto lo riapre lì, come sul Mac. Se si

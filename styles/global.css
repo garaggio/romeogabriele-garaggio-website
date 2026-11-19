@@ -2222,19 +2222,80 @@ html {
 }
 
 /* ==========================================================
-   Foto singole: sempre intere, nelle proporzioni originali.
-   React-notion-x le chiude in un riquadro di altezza fissa e le ritaglia
-   (object-fit: cover). Fuori da gallerie e raccoglitore la foto prende la
-   larghezza scelta in Notion e l'altezza che le spetta: nessun ritaglio.
+   Foto singole (fuori da gallerie e galleria a finestra):
+   formato quadrato uguale per tutte, come le immagini dei link incorporati,
+   ritagliato al centro, angoli arrotondati come i riquadri del sito.
+   Al posto dell'ombra, l'effetto "vetro" del Mac:
+   - alone: dietro la foto una sua copia molto sfocata lascia sul blu un
+     bagliore con i colori della foto stessa (l'indirizzo della foto lo passa
+     NotionPage.tsx in --g-photo-src);
+   - bordo di vetro: un filo di luce sul contorno e un riflesso in alto.
+   Per regolare tutto bastano le variabili qui sotto.
    ========================================================== */
+
+.notion-page {
+  --g-single-ratio: 1 / 1; /* formato: 1 / 1 quadrato, 4 / 5, 16 / 9… */
+  --g-single-radius: 14px; /* angoli: come callout e finestre */
+  --g-single-glow: 0.55; /* intensità dell'alone: 0 = spento, 1 = pieno */
+  --g-single-glow-blur: 30px; /* morbidezza dell'alone */
+  --g-single-edge: rgba(255, 255, 255, 0.22); /* filo di luce sul bordo */
+}
 
 .notion-page
   figure.notion-asset-wrapper-image:not(.notion-gallery_co *):not(
     .notion-scrapbook_co *
   )
   > div {
+  position: relative !important;
+  width: 100%;
   height: auto !important;
   padding-bottom: 0 !important;
+  aspect-ratio: var(--g-single-ratio);
+  border-radius: var(--g-single-radius);
+  /* l'alone sta dietro la foto ma sopra lo sfondo della pagina */
+  isolation: isolate;
+}
+
+/* alone di colore: la foto stessa, sfocata, su tutti e quattro i lati:
+   appena accennato sopra e ai lati, più presente sotto */
+.notion-page
+  figure.notion-asset-wrapper-image:not(.notion-gallery_co *):not(
+    .notion-scrapbook_co *
+  )
+  > div::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  /* quanto l'alone esce dalla foto: sopra, destra, sotto, sinistra */
+  inset: -1% -1% -3.5% -1%;
+  border-radius: inherit;
+  background: var(--g-photo-src, none) center / cover no-repeat;
+  filter: blur(var(--g-single-glow-blur)) saturate(1.6);
+  opacity: var(--g-single-glow);
+  transform: translateZ(0); /* Safari: sfocatura fluida */
+  pointer-events: none;
+}
+
+/* bordo di vetro: filo di luce e riflesso in alto, sopra la foto */
+.notion-page
+  figure.notion-asset-wrapper-image:not(.notion-gallery_co *):not(
+    .notion-scrapbook_co *
+  )
+  > div::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0) 38%
+  );
+  box-shadow:
+    inset 0 0 0 1px var(--g-single-edge),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  pointer-events: none;
 }
 
 .notion-page
@@ -2242,9 +2303,18 @@ html {
     .notion-scrapbook_co *
   )
   img {
-  height: auto !important;
+  /* la foto è fissata ai quattro bordi del riquadro quadrato: Safari non
+     calcola height: 100% su un'altezza che nasce da aspect-ratio */
+  position: absolute !important;
+  z-index: 1;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
   max-height: none;
-  object-fit: contain !important;
+  object-fit: cover !important;
+  object-position: center;
+  border-radius: inherit;
 }
 
 /* ==========================================================
@@ -2539,5 +2609,30 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .notion-contextmenu_co.is-open .notion-collection {
     animation: none;
+  }
+}
+
+/* ==========================================================
+   Indice su telefono: modalità "due righe" quando serve.
+   Se anche una sola voce non entra in una riga, NotionPage.tsx aggiunge
+   g-toc-two all'indice e TUTTE le voci diventano alte due righe insieme
+   (stessa altezza, testo centrato in verticale). Grandezza del testo
+   invariata. Solo su telefono.
+   ========================================================== */
+
+@media (max-width: 640px) {
+  .notion-table-of-contents.g-toc-two .notion-table-of-contents-item {
+    height: 58px;
+    white-space: normal;
+  }
+
+  .notion-table-of-contents.g-toc-two .notion-table-of-contents-item-body {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    line-height: 1.3;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }

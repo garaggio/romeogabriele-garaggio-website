@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Guida Notion · Aggiornamento</title>
+    <!-- Pagina di aggiornamento della guida "Come scrivere su Notion".
+     Si stampa in PDF con Chrome e si aggiunge in fondo alla guida. -->
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 17mm 20mm;
+      }
+      :root {
+        --blue: #0a1a9e;
+        --yellow: #ffd83a;
+        --red: #b3121c;
+        --ink: #17181c;
+        --muted: #5b5e69;
+        --line: #dfe1e8;
+        --soft: #f4f5f9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body {
+        margin: 0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        font-size: 10.5pt;
+        line-height: 1.5;
+      }
+      h2 {
+        font-size: 17pt;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin: 0 0 3mm;
+        padding-top: 2mm;
+        color: var(--blue);
+        break-after: avoid;
+      }
+      h2 .n {
+        display: inline-block;
+        min-width: 9mm;
+        color: var(--ink);
+        background: var(--yellow);
+        text-align: center;
+        border-radius: 2mm;
+        margin-right: 3mm;
+        font-size: 12pt;
+        padding: 0.6mm 1.5mm;
+        vertical-align: 2pt;
+      }
+      h3 {
+        font-size: 11.5pt;
+        margin: 5mm 0 1.5mm;
+        break-after: avoid;
+        color: var(--ink);
+      }
+      p {
+        margin: 0 0 2.5mm;
+      }
+      section {
+        margin-bottom: 7mm;
+      }
+      ul {
+        margin: 0 0 3mm;
+        padding-left: 5mm;
+      }
+      li {
+        margin-bottom: 1mm;
+      }
+      .k {
+        font-family: Menlo, monospace;
+        font-size: 9pt;
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 1.2mm;
+        padding: 0.2mm 1.3mm;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .tip {
+        border-left: 1.2mm solid var(--yellow);
+        background: #fffbea;
+        padding: 2.5mm 4mm;
+        border-radius: 0 2mm 2mm 0;
+        margin: 3mm 0;
+        break-inside: avoid;
+      }
+      .tip b:first-child {
+        display: block;
+        font-size: 8pt;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 0.5mm;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9.5pt;
+        margin: 2mm 0 4mm;
+      }
+      th {
+        text-align: left;
+        font-size: 7.5pt;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1.5px solid var(--ink);
+        padding: 1.5mm 2mm;
+      }
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 2mm;
+        vertical-align: top;
+      }
+      tr {
+        break-inside: avoid;
+      }
+      td:first-child {
+        font-weight: 700;
+        width: 34%;
+      }
+      .where {
+        display: block;
+        margin-top: 0.8mm;
+        font-size: 8.5pt;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h2><span class="n">17</span>Aggiornamento: foto, gallerie e indice</h2>
+      <p>
+        Questa pagina aggiorna le sezioni precedenti. Dove dice qualcosa di
+        diverso, vale questa.
+      </p>
+
+      <h3>
+        Foto singole (sostituisce la riga «Immagine singola» della sezione 13)
+      </h3>
+      <ul>
+        <li>
+          Ogni foto fuori dalle gallerie è <b>quadrata</b>, ritagliata al centro
+          come le immagini dei link incorporati, con gli
+          <b>angoli arrotondati</b> dei riquadri del sito. La larghezza resta
+          quella che le dai in Notion.
+        </li>
+        <li>
+          Al posto dell'ombra c'è l'<b>effetto vetro</b> del Mac: un
+          <b>alone</b> con i colori della foto stessa intorno a tutti e quattro
+          i lati (appena accennato sopra e ai lati, più presente sotto) e un
+          <b>filo di luce</b> sul bordo con un riflesso in alto.
+        </li>
+        <li>In Notion non serve fare nulla: basta inserire la foto.</li>
+      </ul>
+
+      <h3>
+        Galleria a finestra (🗂️ e 🗃️): novità senza nulla da scrivere in Notion
+      </h3>
+      <ul>
+        <li>
+          <b>Gesti:</b> si sfoglia una foto per gesto con lo scorrimento
+          laterale a due dita sul trackpad e col dito sul telefono. I gesti a
+          tre dita li usa macOS e non arrivano alle pagine web.
+        </li>
+        <li>
+          <b>Tastiera:</b> con il puntatore del mouse sopra la foto, i tasti ← →
+          sfogliano subito, senza cliccare.
+        </li>
+        <li>
+          <b>Zoom:</b> mentre la foto è ingrandita la pagina non scorre; si
+          chiude con un clic o con Esc.
+        </li>
+        <li>
+          La fascia sotto la foto ha <b>sempre la stessa altezza</b>, con o
+          senza didascalia: la finestra non cambia misura sfogliando.
+        </li>
+      </ul>
+
+      <h3>Indice su telefono</h3>
+      <p>
+        Se anche una sola voce non entra in una riga, <b>tutte</b> le voci
+        passano insieme a <b>due righe</b>, con la stessa altezza. Solo su
+        telefono; la grandezza del testo resta quella del sito.
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="n">18</span>Dove cambiare i nuovi parametri</h2>
+      <p>
+        Tutti nel file <span class="k">styles/global.css</span>: aprilo in
+        Visual Studio Code, cerca il nome (⌘F), cambia il numero e salva.
+      </p>
+      <table>
+        <tr>
+          <th>Cosa</th>
+          <th>Riga da cambiare e valori</th>
+        </tr>
+        <tr>
+          <td>Formato delle foto singole</td>
+          <td>
+            <span class="k">--g-single-ratio: 1 / 1;</span> 1 / 1 = quadrato;
+            per esempio 4 / 5 verticale, 16 / 9 orizzontale.<span class="where"
+              >Sezione «Foto singole», all'inizio.</span
+            >
+          </td>
+        </tr>
+        <tr>
+          <td>Angoli delle foto singole</td>
+          <td>
+            <span class="k">--g-single-radius: 14px;</span> 0 = angoli vivi,
+            numeri più alti = più arrotondati.
+          </td>
+        </tr>
+        <tr>
+          <td>Intensità dell'alone</td>
+          <td>
+            <span class="k">--g-single-glow: 0.55;</span> da 0 (spento) a 1
+            (pieno).
+          </td>
+        </tr>
+        <tr>
+          <td>Morbidezza dell'alone</td>
+          <td>
+            <span class="k">--g-single-glow-blur: 30px;</span> più alto = più
+            sfumato e diffuso.
+          </td>
+        </tr>
+        <tr>
+          <td>Quanto l'alone esce dalla foto</td>
+          <td>
+            <span class="k">inset: -1% -1% -3.5% -1%;</span> i quattro valori
+            sono, nell'ordine, <b>sopra, destra, sotto, sinistra</b>. Più il
+            numero negativo è grande, più l'alone esce da quel lato (0% = non
+            esce).<span class="where"
+              >Sezione «Foto singole», nel blocco con il commento «alone di
+              colore».</span
+            >
+          </td>
+        </tr>
+        <tr>
+          <td>Filo di luce sul bordo</td>
+          <td>
+            <span class="k">--g-single-edge: rgba(255, 255, 255, 0.22);</span>
+            l'ultimo numero è la luminosità del filo: 0 = invisibile.
+          </td>
+        </tr>
+        <tr>
+          <td>Indice a due righe (telefono)</td>
+          <td>
+            <span class="k">height: 58px;</span> altezza di ogni voce in
+            modalità due righe.<span class="where"
+              >Sezione «Indice su telefono: modalità "due righe"», in fondo al
+              file.</span
+            >
+          </td>
+        </tr>
+        <tr>
+          <td>Barra YOU/TU</td>
+          <td>
+            <span class="k">--strip-h</span> altezza e
+            <span class="k">--strip-track</span> spazio tra le lettere.
+            Computer: <span class="k">--strip-h: 28px;</span> nel blocco
+            <span class="k">.g-strip</span>. Telefono:
+            <span class="k">--strip-h: 18.9px;</span> e
+            <span class="k">font-size: 8.4px;</span> nel blocco per telefono
+            (<span class="k">@media (max-width: 640px)</span>).
+          </td>
+        </tr>
+      </table>
+      <div class="tip">
+        <b>Consiglio</b>Cambia un valore alla volta e ricarica la pagina per
+        vedere l'effetto. Se qualcosa non ti piace, rimetti il numero di prima:
+        i valori di questa tabella sono quelli attuali.
+      </div>
+    </section>
+  </body>
+</html>

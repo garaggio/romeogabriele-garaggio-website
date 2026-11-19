@@ -63,14 +63,21 @@ export function Scrapbook({
   className
 }: ScrapbookProps) {
   const count = items.length
-  const [index, setIndex] = React.useState(() =>
-    clamp(initialIndex, 0, Math.max(0, count - 1))
-  )
+  // posizione e direzione dell'ultimo spostamento (1 avanti, -1 indietro):
+  // la direzione decide da che lato entra la foto nuova
+  const [nav, setNav] = React.useState(() => ({
+    index: clamp(initialIndex, 0, Math.max(0, count - 1)),
+    dir: 0
+  }))
+  const index = nav.index
   const [dragging, setDragging] = React.useState(false)
   const trackRef = React.useRef<HTMLDivElement>(null)
   const thumbRef = React.useRef<HTMLDivElement>(null)
   const grabOffset = React.useRef(0)
   const photoRef = React.useRef<HTMLImageElement>(null)
+  const stageRef = React.useRef<HTMLDivElement>(null)
+  // dopo uno scorrimento col dito il "tocco" non deve aprire lo zoom
+  const swiped = React.useRef(false)
   const closeZoom = React.useRef<(() => void) | null>(null)
   const id = React.useId()
 
@@ -79,9 +86,85 @@ export function Scrapbook({
   const item = items[current]
 
   const go = React.useCallback(
-    (next: number) => setIndex(clamp(next, 0, Math.max(0, count - 1))),
+    (next: number | ((from: number) => number)) =>
+      setNav((prev) => {
+        const target = typeof next === 'function' ? next(prev.index) : next
+        const i = clamp(target, 0, Math.max(0, count - 1))
+        return i === prev.index
+          ? prev
+          : { index: i, dir: i > prev.index ? 1 : -1 }
+      }),
     [count]
   )
+
+  // Scorrimento a gesti, una foto per gesto:
+  // - trackpad: scorrimento orizzontale a due dita (quello che il browser
+  //   riceve; i gesti a tre dita li usa macOS e non arrivano alle pagine)
+  // - telefono: scorrimento col dito a destra o a sinistra
+  // Lo scorrimento verticale resta alla pagina.
+  React.useEffect(() => {
+    const stage = stageRef.current
+    if (!stage || count < 2) return
+
+    let acc = 0
+    let locked = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return
+      // niente "pagina precedente" del browser con lo scorrimento laterale
+      event.preventDefault()
+      // il gesto (con la sua inerzia) finisce quando gli eventi si fermano
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        acc = 0
+        locked = false
+      }, 200)
+      if (locked) return
+      acc += event.deltaX
+      if (Math.abs(acc) > 40) {
+        const d = acc > 0 ? 1 : -1
+        go((from) => from + d)
+        locked = true
+        acc = 0
+      }
+    }
+
+    let startX = 0
+    let startY = 0
+    let tracking = false
+    const onTouchStart = (event: TouchEvent) => {
+      const t = event.touches[0]
+      tracking = event.touches.length === 1 && !!t
+      if (t) {
+        startX = t.clientX
+        startY = t.clientY
+      }
+    }
+    const onTouchEnd = (event: TouchEvent) => {
+      const t = event.changedTouches[0]
+      if (!tracking || !t) return
+      tracking = false
+      const dx = t.clientX - startX
+      const dy = t.clientY - startY
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        const d = dx < 0 ? 1 : -1
+        go((from) => from + d)
+        swiped.current = true
+        setTimeout(() => (swiped.current = false), 400)
+      }
+    }
+
+    stage.addEventListener('wheel', onWheel, { passive: false })
+    stage.addEventListener('touchstart', onTouchStart, { passive: true })
+    stage.addEventListener('touchend', onTouchEnd, { passive: true })
+    return () => {
+      clearTimeout(timer)
+      stage.removeEventListener('wheel', onWheel)
+      stage.removeEventListener('touchstart', onTouchStart)
+      stage.removeEventListener('touchend', onTouchEnd)
+    }
+  }, [count, go])
 
   // precarica la foto precedente e la successiva: lo sfoglio è immediato
   React.useEffect(() => {
@@ -209,6 +292,33 @@ export function Scrapbook({
     }
   }
 
+  // Con il puntatore del mouse sopra la foto i tasti ← → sfogliano subito,
+  // senza dover prima cliccare sulla finestra (il clic apre lo zoom).
+  // Se la finestra ha già il focus ci pensa onKeyDown: niente doppio passo.
+  const hovering = React.useRef(false)
+  React.useEffect(() => {
+    if (count < 2) return
+    const onKey = (event: KeyboardEvent) => {
+      if (!hovering.current || closeZoom.current || event.defaultPrevented) {
+        return
+      }
+      if (event.metaKey || event.ctrlKey || event.altKey) return
+      const target = event.target as HTMLElement | null
+      if (
+        target?.closest('input, textarea, select, [contenteditable="true"]')
+      ) {
+        return
+      }
+      const d =
+        event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+      if (!d) return
+      event.preventDefault()
+      go((from) => from + d)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [count, go])
+
   // dalla posizione sul binario all'elemento corrispondente
   const indexFromPointer = (clientX: number, offset: number) => {
     const track = trackRef.current
@@ -279,12 +389,23 @@ export function Scrapbook({
       </div>
 
       <div className={styles.body}>
-        <div className={styles.stage} id={`${id}-stage`}>
+        <div
+          className={styles.stage}
+          id={`${id}-stage`}
+          ref={stageRef}
+          onPointerEnter={(event) => {
+            if (event.pointerType === 'mouse') hovering.current = true
+          }}
+          onPointerLeave={() => {
+            hovering.current = false
+          }}
+        >
           {zoomable || onInspect ? (
             <button
               type='button'
               className={styles.inspect}
               onClick={() => {
+                if (swiped.current) return
                 if (zoomable) openZoom()
                 onInspect?.(item, current)
               }}
@@ -294,6 +415,7 @@ export function Scrapbook({
                 key={item.id}
                 ref={photoRef}
                 className={styles.photo}
+                data-dir={nav.dir || undefined}
                 src={item.url}
                 alt={item.title}
                 decoding='async'
@@ -303,6 +425,7 @@ export function Scrapbook({
             <img
               key={item.id}
               className={styles.photo}
+              data-dir={nav.dir || undefined}
               src={item.url}
               alt={item.title}
               decoding='async'

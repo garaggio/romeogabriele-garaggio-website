@@ -117,6 +117,8 @@
 
 /* area visiva: grigio neutro leggermente incassato */
 .stage {
+  /* lo scorrimento verticale resta alla pagina, quello laterale sfoglia */
+  touch-action: pan-y;
   display: flex;
   min-height: 0;
   align-items: center;
@@ -411,9 +413,32 @@
   padding: 10px 14px 11px;
 }
 
-/* cambio di foto: dissolvenza breve invece dello scatto */
+/* cambio di foto: la nuova entra dal lato verso cui si sfoglia, con una
+   breve dissolvenza (la prima foto compare solo in dissolvenza) */
 .modern .photo {
   animation: sb-fade 0.28s ease-out;
+}
+
+.modern .photo[data-dir='1'] {
+  animation: sb-in-next 0.32s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.modern .photo[data-dir='-1'] {
+  animation: sb-in-prev 0.32s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+@keyframes sb-in-next {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+@keyframes sb-in-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
 }
 
 @keyframes sb-fade {
@@ -457,6 +482,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .modern .photo,
+  .modern .photo[data-dir],
   .modern .closeBox {
     animation: none;
     transition: none;

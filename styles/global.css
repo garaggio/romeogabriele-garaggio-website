@@ -51,7 +51,7 @@ body.dark-mode {
   /* il giallo del sito, appena attenuato: evidenziazioni, selezione, passaggi.
      Molto trasparente diventerebbe grigio sopra il blu, quindi resta quasi pieno
      e il testo sopra diventa scuro (come nei segnalibri) */
-  --g-yellow-soft: rgba(255, 216, 58, 0.82);
+  --g-yellow-soft: var(--g-yellow); /* un solo giallo in tutto il sito */
   --g-yellow-ink: #1b1b1d;
   --select-color-0: var(--g-yellow);
   --select-color-1: var(--g-yellow-soft);
@@ -348,7 +348,7 @@ details.notion-toggle > div {
   background: var(--g-panel);
 }
 
-.notion-callout.notion-yellow_background {
+.notion-callout.notion-yellow_background_co {
   border: 0;
   border-block: 3px dashed var(--g-red);
   background: var(--g-yellow);
@@ -463,23 +463,39 @@ details.notion-toggle > div {
 /* a tutta larghezza dello schermo, anche se il contenitore del kit è più stretto */
 .g-footer {
   width: 100vw;
-  margin: clamp(3rem, 8vw, 6rem) 0 0 calc(50% - 50vw);
+  margin: 0 0 0 calc(50% - 50vw); /* lo spazio sopra lo dà la striscia */
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .g-strip {
-  display: flex;
+  /* altezza fissa: la striscia non cambia misura mentre si scorre */
+  --strip-h: 28px;
+  --strip-track: 0.4em;
+
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 colori identici */
+  height: var(--strip-h);
+  overflow: hidden;
   font-family: var(--notion-font);
   font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.4em;
+  line-height: 1;
+  letter-spacing: var(--strip-track);
   text-transform: uppercase;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 .g-strip span {
-  flex: 1;
-  padding: 0.3rem 0;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 100%;
+  /* lo spazio tra le lettere si aggiunge anche dopo l'ultima: lo
+     compensiamo a sinistra, così ogni scritta è davvero al centro */
+  padding: 0 0 0 var(--strip-track);
+  white-space: nowrap;
 }
 
 /* testo scelto per il contrasto: bianco su rosso e blu, nero su verde e arancio */
@@ -503,24 +519,15 @@ details.notion-toggle > div {
   color: #fff;
 }
 
-/* la barra che ti segue: posizione e larghezza le imposta il componente */
-.g-strip-fixed {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: var(--g-inset);
+/* la striscia che ti segue mentre scorri e si ferma sopra il footer
+   (position: sticky, la gestisce il browser: niente salti su telefono) */
+.g-strip-sticky {
+  position: sticky;
+  bottom: 0;
   z-index: 201;
-  visibility: hidden;
+  width: 100vw;
+  margin: clamp(3rem, 8vw, 6rem) 0 0 calc(50% - 50vw);
   pointer-events: none;
-}
-
-.g-strip-fixed.is-ready {
-  visibility: visible;
-}
-
-/* quando la striscia in fondo la raggiunge, la barra che ti segue sparisce */
-body.g-strip-landed .g-strip-fixed {
-  visibility: hidden;
 }
 
 /* ---------- Contatti ---------- */
@@ -626,12 +633,15 @@ body.g-strip-landed .g-strip-fixed {
 
 @media (max-width: 640px) {
   .notion-page-link,
-  .notion-callout.notion-yellow_background {
+  .notion-callout.notion-yellow_background_co {
     letter-spacing: 0.06em;
   }
 
+  /* telefono: striscia sottile, nelle stesse proporzioni del computer */
   .g-strip {
-    letter-spacing: 0.2em;
+    --strip-h: 18.9px; /* 18px + 5% */
+    --strip-track: 0.28em;
+    font-size: 8.4px; /* 8px + 5% */
   }
 
   /* barra in alto: puntini, casetta e loghi devono stare in una riga sola */
@@ -687,7 +697,7 @@ body.g-strip-landed .g-strip-fixed {
     letter-spacing: 0.04em;
   }
 
-  .notion-callout.notion-yellow_background {
+  .notion-callout.notion-yellow_background_co {
     transform: none;
   }
 
@@ -832,27 +842,27 @@ body.g-strip-landed .g-strip-fixed {
   margin: 1.25rem 0 2.25rem;
   background: var(--fx-window);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--g-shadow);
   font-family: var(--notion-font);
-  font-size: 14px;
+  font-size: 16.8px; /* misure già ingrandite del 20% (niente zoom) */
 }
 
 /* Barra del titolo con i tre puntini della finestra */
 .notion-table-of-contents::before {
   content: 'Indice';
   display: block;
-  height: 38px;
-  line-height: 38px;
+  height: 45.6px;
+  line-height: 45.6px;
   text-align: center;
   color: var(--fx-muted);
-  font-size: 13px;
+  font-size: 15.6px;
   font-weight: 600;
   background:
-    radial-gradient(circle at 18px 50%, #ff5f57 0 6px, transparent 6.5px),
-    radial-gradient(circle at 38px 50%, #febc2e 0 6px, transparent 6.5px),
-    radial-gradient(circle at 58px 50%, #28c840 0 6px, transparent 6.5px),
+    radial-gradient(circle at 21.6px 50%, #ff5f57 0 7.2px, transparent 7.8px),
+    radial-gradient(circle at 45.6px 50%, #febc2e 0 7.2px, transparent 7.8px),
+    radial-gradient(circle at 69.6px 50%, #28c840 0 7.2px, transparent 7.8px),
     var(--fx-bar);
   border-bottom: 1px solid rgba(0, 0, 0, 0.45);
 }
@@ -861,12 +871,12 @@ body.g-strip-landed .g-strip-fixed {
 .notion-table-of-contents::after {
   content: counter(fxrow) ' elementi';
   display: block;
-  padding: 0 14px;
-  height: 26px;
-  line-height: 26px;
+  padding: 0 16.8px;
+  height: 31.2px;
+  line-height: 31.2px;
   text-align: center;
   color: var(--fx-muted);
-  font-size: 12px;
+  font-size: 14.4px;
   background: var(--fx-bar);
   border-top: 1px solid rgba(0, 0, 0, 0.45);
 }
@@ -876,12 +886,17 @@ body.g-strip-landed .g-strip-fixed {
   counter-increment: fxrow;
   display: flex;
   align-items: center;
-  height: 30px;
-  padding: 0 14px;
+  height: 36px;
+  padding: 0 16.8px;
   color: var(--fx-text);
+  font-size: inherit;
   text-decoration: none;
   border: 0;
   white-space: nowrap;
+  /* react-notion-x schiarisce le voci (70%) e le anima al passaggio: qui
+     restano ferme, cambia solo il colore di sfondo */
+  opacity: 1;
+  transition: none;
 }
 
 /* Righe alternate */
@@ -894,6 +909,7 @@ body.g-strip-landed .g-strip-fixed {
 .notion-table-of-contents .notion-table-of-contents-item:focus-visible {
   background: var(--fx-accent);
   color: #fff;
+  opacity: 1;
   outline: none;
 }
 
@@ -903,12 +919,12 @@ body.g-strip-landed .g-strip-fixed {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 30px;
-  padding-left: 42px;
+  line-height: 36px;
+  padding-left: 50.4px;
   /* livello 1 (titolo grande): cartella verde con chevron */
   background:
-    var(--fx-chevron) no-repeat 0 50% / 8px 12px,
-    var(--fx-folder) no-repeat 18px 50% / 20px auto;
+    var(--fx-chevron) no-repeat 0 50% / 9.6px 14.4px,
+    var(--fx-folder) no-repeat 21.6px 50% / 24px auto;
   font-weight: 500;
 }
 
@@ -917,8 +933,8 @@ body.g-strip-landed .g-strip-fixed {
   .notion-table-of-contents-item-body[style*='margin-left: 24px'],
 .notion-table-of-contents
   .notion-table-of-contents-item-body[style*='margin-left: 48px'] {
-  padding-left: 26px;
-  background: var(--fx-file) no-repeat 0 50% / 14px auto;
+  padding-left: 31.2px;
+  background: var(--fx-file) no-repeat 0 50% / 16.8px auto;
   font-weight: 400;
 }
 
@@ -929,8 +945,8 @@ body.g-strip-landed .g-strip-fixed {
     [style*='margin-left: 48px']
   ) {
   background:
-    var(--fx-chevron-on) no-repeat 0 50% / 8px 12px,
-    var(--fx-folder) no-repeat 18px 50% / 20px auto;
+    var(--fx-chevron-on) no-repeat 0 50% / 9.6px 14.4px,
+    var(--fx-folder) no-repeat 21.6px 50% / 24px auto;
 }
 
 /* ---------- Extra ---------- */
@@ -990,7 +1006,7 @@ a.notion-bookmark {
   /* --- personalizza qui --- */
   --lk-yellow: var(--g-yellow); /* il giallo esatto del sito */
   --lk-alpha: 82%; /* opacità del giallo: 100% = pieno, 70% = molto vetro */
-  --lk-alpha-hover: 90%;
+  --lk-alpha-hover: 100%; /* al passaggio del mouse: giallo pieno #ffd83a */
   --lk-ink: #1b1b1d; /* testo sul giallo */
   --lk-pill: rgba(30, 30, 32, 0.88); /* pulsanti e pillole */
   --lk-pill-text: #f2f2f4;
@@ -1005,7 +1021,7 @@ a.notion-bookmark {
   width: 100%;
   height: auto !important;
   margin: 1rem 0;
-  padding: 14px;
+  padding: 14px var(--g-box-pad-x);
   /* giallo semitrasparente + riflesso in alto: effetto vetro smerigliato di macOS */
   background:
     linear-gradient(
@@ -1060,7 +1076,7 @@ a.notion-bookmark .notion-bookmark-title {
   margin: 0;
   overflow: hidden;
   color: var(--lk-ink);
-  font-size: 17px;
+  font-size: 18.7px;
   font-weight: 700;
   line-height: 1.3;
   text-overflow: ellipsis;
@@ -1083,7 +1099,7 @@ a.notion-bookmark .notion-bookmark-link {
   background: var(--lk-pill);
   color: var(--lk-pill-text);
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 14.3px;
   font-weight: 500;
 }
 a.notion-bookmark .notion-bookmark-link-icon {
@@ -1113,7 +1129,7 @@ a.notion-bookmark .notion-bookmark-image {
   position: relative;
   width: auto;
   min-height: 0;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1; /* quadrato perfetto */
   overflow: hidden;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.1);
@@ -1123,7 +1139,14 @@ a.notion-bookmark .notion-bookmark-image img {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* ritagliata a quadrato, centrata, senza bordi aggiunti */
+  object-fit: cover !important;
+  object-position: center;
+}
+
+/* react-notion-x nasconde la foto sul telefono e dentro le colonne */
+a.notion-bookmark .notion-bookmark-image {
+  display: block !important;
 }
 
 /* Descrizione a destra, grande e leggera come "Durata: 1:12".
@@ -1138,12 +1161,13 @@ a.notion-bookmark .notion-bookmark-description {
   padding-left: 6px;
   overflow: hidden;
   color: rgba(27, 27, 29, 0.74);
-  font-size: clamp(15px, 1.8vw, 21px);
+  font-size: clamp(16.5px, 1.98vw, 23.1px);
   font-weight: 500;
   line-height: 1.35;
   white-space: pre-line; /* gli "a capo" scritti in Notion restano */
   display: -webkit-box;
   -webkit-line-clamp: 5;
+  line-clamp: 5;
   -webkit-box-orient: vertical;
 }
 
@@ -1181,7 +1205,7 @@ a.notion-bookmark:focus-visible {
   a.notion-bookmark {
     grid-template-columns: 56px minmax(0, 1fr) auto;
     grid-template-rows: auto auto auto auto;
-    padding: 12px;
+    padding: 12px var(--g-box-pad-x);
     border-radius: 18px !important;
   }
   a.notion-bookmark .notion-bookmark-title {
@@ -1193,13 +1217,13 @@ a.notion-bookmark:focus-visible {
   }
   a.notion-bookmark .notion-bookmark-image {
     grid-column: 1 / -1;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 1 / 1;
   }
   a.notion-bookmark .notion-bookmark-description {
     grid-column: 1 / -1;
     grid-row: 3;
     padding-left: 0;
-    font-size: 15px;
+    font-size: 16.5px;
   }
   a.notion-bookmark::after {
     grid-row: 4;
@@ -1341,23 +1365,6 @@ a.notion-bookmark:focus-visible {
   color: var(--g-yellow);
 }
 
-/* PDF e file da scaricare: al passaggio, giallo del sito */
-.notion-file-link {
-  transition: background-color 0.15s;
-}
-
-.notion-file-link:hover,
-.notion-file-link:focus-visible {
-  background: var(--g-yellow-soft);
-  color: var(--g-yellow-ink);
-}
-
-.notion-file-link:hover *,
-.notion-file-link:focus-visible * {
-  color: inherit;
-  fill: currentColor;
-}
-
 /* ==========================================================
    Home: le sottopagine come cartelle del Finder
    La galleria di Notion diventa una griglia di cartelle: icona grande e,
@@ -1488,5 +1495,1049 @@ a.notion-bookmark:focus-visible {
 @media (max-width: 640px) {
   .index-page .notion-gallery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================
+   Testo uniforme: paragrafi, citazioni, callout, elenchi e toggle
+   hanno tutti lo stesso Helvetica e la stessa grandezza.
+   Per ingrandire o rimpicciolire TUTTO il testo cambia solo --g-text-size.
+   ========================================================== */
+
+:root {
+  --g-text-size: 17.6px; /* 110% dei 16px originali */
+  /* margine interno a destra e a sinistra, uguale per tutti i riquadri
+     (avvisi, file, segnalibri): icone e testi partono alla stessa distanza */
+  --g-box-pad-x: 19px;
+}
+
+.notion-text,
+.notion-quote,
+.notion-callout,
+.notion-callout-text,
+.notion-list,
+.notion-list li,
+.notion-to-do,
+details.notion-toggle > summary,
+details.notion-toggle > div,
+.notion-asset-caption {
+  font-family: var(--notion-font);
+  font-size: var(--g-text-size);
+}
+
+/* react-notion-x disegna le citazioni al 120%: le riportiamo come il testo */
+.notion-quote {
+  font-size: var(--g-text-size) !important;
+}
+
+/* dentro callout, toggle e citazioni i blocchi non si rimpiccioliscono */
+.notion-callout-text .notion-text,
+.notion-quote .notion-text,
+details.notion-toggle .notion-text {
+  font-size: inherit;
+}
+
+/* ==========================================================
+   Galleria foto a scorrimento orizzontale (stile Mac)
+
+   IN NOTION: crea un callout, metti come icona 🖼️ (oppure 📷 o 📸)
+   e trascina le foto DENTRO il callout. Il testo del callout non si vede.
+   Ogni foto mantiene le sue proporzioni; la didascalia va sotto la foto.
+   Le frecce ‹ › le aggiunge components/NotionPage.tsx.
+   ========================================================== */
+
+.notion-callout.notion-gallery_co {
+  /* ombra morbida e diffusa, senza bordi netti */
+  --g-photo-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.1), 0 6px 14px -4px rgba(0, 0, 0, 0.18),
+    0 18px 36px -14px rgba(0, 0, 0, 0.28);
+  --g-photo-shadow-hover:
+    0 2px 4px rgba(0, 0, 0, 0.12), 0 10px 20px -6px rgba(0, 0, 0, 0.22),
+    0 26px 44px -16px rgba(0, 0, 0, 0.32);
+  --g-gallery-h: clamp(220px, 46vh, 440px);
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 1.5rem 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.notion-gallery_co > .notion-callout-text {
+  display: flex;
+  width: 100%;
+  gap: 18px;
+  margin: 0;
+  /* spazio sopra e sotto perché l'ombra non venga tagliata; ai lati la
+     striscia finisce esattamente ai margini del testo */
+  margin: -14px 0 -22px;
+  padding: 14px 0 46px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 0;
+  scrollbar-width: none;
+  white-space: normal;
+}
+
+.notion-gallery_co > .notion-callout-text::-webkit-scrollbar {
+  display: none;
+}
+
+.notion-gallery_co > .notion-callout-text:focus-visible {
+  outline: 2px solid var(--g-yellow);
+  outline-offset: 4px;
+  border-radius: 14px;
+}
+
+/* ogni foto: altezza fissa, larghezza secondo le proporzioni */
+.notion-gallery_co figure.notion-asset-wrapper {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0; /* react-notion-x mette min-width: 100% a ogni immagine */
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  scroll-snap-align: start;
+  /* tutte le foto allineate in alto: la didascalia va sotto il bordo comune
+     (react-notion-x le centrava e quelle con didascalia salivano) */
+  align-self: flex-start;
+}
+
+.notion-gallery_co figure.notion-asset-wrapper > div {
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  align-self: flex-start !important;
+}
+
+.notion-gallery_co .lazy-image-wrapper {
+  width: auto !important;
+  height: var(--g-gallery-h) !important;
+  padding: 0 !important;
+  overflow: visible;
+}
+
+.notion-gallery_co .lazy-image-preview {
+  display: none;
+}
+
+.notion-gallery_co figure img {
+  position: static !important;
+  display: block;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: min(86vw, 900px) !important;
+  height: var(--g-gallery-h) !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  border-radius: 12px;
+  box-shadow: var(--g-photo-shadow);
+  cursor: zoom-in;
+  transition: box-shadow 0.25s ease;
+}
+
+/* al passaggio si alza tutta la figura: la foto e la sua didascalia insieme
+   (non quando la foto è aperta ingrandita) */
+.notion-gallery_co figure.notion-asset-wrapper {
+  transition: transform 0.25s ease;
+}
+
+.notion-gallery_co figure.notion-asset-wrapper:hover {
+  transform: translateY(-3px);
+}
+
+.notion-gallery_co figure:hover img {
+  box-shadow: var(--g-photo-shadow-hover);
+}
+
+/* la didascalia non allarga la foto: va a capo sotto di lei */
+.notion-gallery_co .notion-asset-caption {
+  width: 0;
+  min-width: 100%;
+  margin-top: 0.3rem; /* vicina alla foto */
+  color: var(--fg-color-3);
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+/* frecce rotonde e traslucide che compaiono al passaggio, come su macOS */
+.g-gallery-btn {
+  position: absolute;
+  top: calc(var(--g-gallery-h) / 2);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(20, 24, 60, 0.55);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-50%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: var(--g-shadow);
+  transition:
+    opacity 0.2s,
+    background-color 0.2s;
+}
+
+.g-gallery-btn--prev {
+  left: 10px;
+}
+
+.g-gallery-btn--next {
+  right: 10px;
+}
+
+.notion-gallery_co:hover .g-gallery-btn:not(:disabled),
+.g-gallery-btn:focus-visible {
+  opacity: 1;
+}
+
+.g-gallery-btn:hover {
+  background: var(--g-yellow);
+  color: var(--g-yellow-ink);
+}
+
+.g-gallery-btn:disabled {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* sul telefono si scorre col dito: niente frecce, foto più basse */
+@media (hover: none), (max-width: 640px) {
+  .notion-callout.notion-gallery_co {
+    --g-gallery-h: clamp(200px, 58vw, 340px);
+  }
+
+  .g-gallery-btn {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notion-gallery_co figure.notion-asset-wrapper,
+  .notion-gallery_co figure img {
+    transition: none;
+  }
+}
+
+/* ==========================================================
+   Grandezze del sito
+   - tutte le scritte al 110% (testo, titoletti, cartelle, contatti…)
+   - titolo della pagina alla misura originale del tema
+   - indice ("finestra del Finder") più grande del 20%, icone comprese
+   ========================================================== */
+
+/* le misure in "rem" (cartelle, contatti, didascalie…) crescono del 10% */
+html {
+  font-size: 110%;
+}
+
+/* base di react-notion-x: era 16px. Titoli 1/2/3 e tutto ciò che è in "em"
+   crescono di conseguenza */
+.notion.notion-app {
+  font-size: var(--g-text-size);
+}
+
+/* titolo della pagina: misure originali, scritte in px perché non crescano
+   insieme al resto del testo (2.5em di 16px = 40px) */
+.notion-title {
+  font-size: 40px;
+}
+
+/* titolo della home: l'originale clamp(2.2rem, 8vw, 5rem) con rem = 16px */
+.index-page .notion-title {
+  font-size: clamp(35.2px, 8vw, 80px);
+}
+
+@media (max-width: 640px) {
+  /* telefono: l'originale 1.9em = 30.4px */
+  .notion-title {
+    font-size: 30.4px;
+  }
+
+  /* home su telefono: l'originale clamp(1.8rem, 9vw, 2.6rem) */
+  .index-page .notion-title {
+    font-size: clamp(28.8px, 9vw, 41.6px);
+  }
+}
+
+/* ==========================================================
+   Proporzioni uguali per citazioni, callout e cartelle della home
+   ========================================================== */
+
+/* stessa interlinea per tutto il testo corrente: la citazione aveva righe
+   più strette (1.5) e sembrava più grande del resto */
+.notion-text,
+.notion-quote,
+.notion-callout-text,
+.notion-list li {
+  line-height: 1.65;
+}
+
+.notion-quote {
+  padding: 0.1em 0.9em;
+}
+
+/* callout: icona grande quanto il testo, allineata alla prima riga */
+.notion-callout > .notion-page-icon-inline {
+  width: auto;
+  height: 1.65em;
+  font-size: var(--g-text-size);
+  line-height: 1.65;
+}
+
+.notion-callout > .notion-page-icon-inline .notion-page-icon {
+  font-size: 1.1em;
+  line-height: 1.5;
+}
+
+.notion-callout > .notion-page-icon-inline img.notion-page-icon {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+/* pulsanti di Notion (es. "Linktree"): stesso testo del resto, non 14px */
+.notion-button {
+  font-size: var(--g-text-size);
+  padding: 0.25em 0.75em;
+}
+
+/* home: cartelle cresciute come il resto (+10%) e nomi grandi come il testo */
+.index-page .notion-gallery .notion-collection-card-cover {
+  width: clamp(101px, 14.3vw, 150px);
+}
+
+.index-page .notion-gallery .notion-page-title-text {
+  font-size: var(--g-text-size);
+}
+
+/* ==========================================================
+   Callout: tre stili, scelti dal COLORE DI SFONDO del callout in Notion
+   (puntini ⋮⋮ a sinistra del callout → Colore → Sfondo)
+
+   - nessun colore / grigio / altri → FINESTRA MAC (sotto)
+   - giallo                         → NASTRO GIALLO (più sopra)
+   - icona 🖼️                       → GALLERIA FOTO (più sopra)
+   ========================================================== */
+
+/* ---------- Finestra Mac: avviso di sistema ----------
+   Come gli avvisi di macOS: niente barra del titolo, stesso margine sopra e
+   sotto, icona a sinistra, testo e pulsanti accanto. */
+
+.notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+    .notion-contextmenu_co
+  ):not(.notion-scrapbook_co) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: 0.85em;
+  margin: 1.25rem 0;
+  padding: 1em var(--g-box-pad-x);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0) 45%
+    ),
+    rgba(5, 9, 62, 0.74) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    var(--g-shadow);
+}
+
+/* l'icona sta in un riquadro come un'app nel Dock, con il bordo giallo */
+.notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+    .notion-contextmenu_co
+  ):not(.notion-scrapbook_co)
+  > .notion-page-icon-inline {
+  display: grid;
+  place-items: center;
+  width: 1.65em;
+  height: 1.65em;
+  max-width: none; /* react-notion-x limita le icone a 22px */
+  max-height: none;
+  margin: 0;
+  border: 1px solid var(--g-yellow);
+  border-radius: 0.45em;
+  background: rgba(255, 216, 58, 0.14);
+}
+
+.notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+    .notion-contextmenu_co
+  ):not(.notion-scrapbook_co)
+  > .notion-callout-text {
+  grid-column: 2;
+  margin-left: 0;
+}
+
+/* niente spazio in più in alto e in fondo: margini uguali */
+.notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+    .notion-contextmenu_co
+  ):not(.notion-scrapbook_co)
+  > .notion-callout-text
+  > :first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+    .notion-contextmenu_co
+  ):not(.notion-scrapbook_co)
+  > .notion-callout-text
+  > :last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* callout senza icona: il testo usa tutta la larghezza */
+.notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+    .notion-contextmenu_co
+  ):not(.notion-scrapbook_co):not(:has(> .notion-page-icon-inline))
+  > .notion-callout-text {
+  grid-column: 1 / -1;
+}
+
+/* l'emoji al centro del riquadro, un po' più grande del testo */
+.notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+    .notion-contextmenu_co
+  ):not(.notion-scrapbook_co)
+  > .notion-page-icon-inline
+  .notion-page-icon {
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+/* pulsanti nella finestra: gialli, il rosso del sito al passaggio */
+.notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+    .notion-contextmenu_co
+  ):not(.notion-scrapbook_co)
+  .notion-button {
+  min-height: 0;
+  margin-top: 0.35em;
+  padding: 0.3em 0.85em;
+  border: 0;
+  border-radius: 6px;
+  background: var(--g-yellow);
+  color: var(--g-yellow-ink);
+  font-size: 0.8em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+    .notion-contextmenu_co
+  ):not(.notion-scrapbook_co)
+  .notion-button:hover {
+  background: var(--g-red);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
+      .notion-contextmenu_co
+    ):not(.notion-scrapbook_co) {
+    padding: 0.85em var(--g-box-pad-x);
+    column-gap: 0.65em;
+  }
+}
+
+/* ==========================================================
+   File caricati in Notion (/file, /pdf come file): scheda con pulsante
+   "Scarica". In Notion basta caricare il file: tipo, nome e pulsante li
+   aggiunge components/NotionPage.tsx; il download passa da /api/download.
+   ========================================================== */
+
+.notion-file {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  width: 100%;
+  margin: 0.75rem 0;
+  padding: 0.6em 0.7em 0.6em 0.6em; /* misure originali della scheda */
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 11px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0) 55%
+    ),
+    rgba(5, 9, 62, 0.74);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    var(--g-shadow);
+}
+
+/* nome e misura: cliccandoli il file si apre in una nuova scheda */
+.notion-file > a.notion-file-link {
+  flex: 1;
+  min-width: 0;
+  gap: 0.75em;
+  padding: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--fg-color);
+}
+
+.notion-file > a.notion-file-link:hover,
+.notion-file > a.notion-file-link:focus-visible {
+  background: none;
+}
+
+.notion-file > a.notion-file-link:hover .notion-file-title {
+  text-decoration: underline dashed var(--g-yellow);
+  text-underline-offset: 4px;
+}
+
+/* il riquadro col tipo di file (PDF, ZIP, MP3…) al posto della graffetta */
+.notion-file > a.notion-file-link .notion-file-icon {
+  display: none;
+}
+
+.notion-file > a.notion-file-link::before {
+  content: attr(data-ext);
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.6em;
+  height: 2.6em;
+  border: 1px solid var(--g-yellow);
+  border-radius: 0.5em;
+  background: rgba(255, 216, 58, 0.14);
+  color: var(--g-yellow);
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* finché il pulsante non è pronto, il riquadro mostra una freccia */
+.notion-file > a.notion-file-link:not([data-ext])::before {
+  content: '↓';
+  font-size: 1em;
+}
+
+.notion-file .notion-file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.notion-file .notion-file-title {
+  max-width: 100%;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.notion-file .notion-file-size {
+  margin: 0.1em 0 0;
+  color: var(--fg-color-3);
+  font-size: 0.75em;
+  line-height: 1.3;
+}
+
+/* il pulsante giallo, come quello del callout */
+.g-file-download {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0.9em 0.35em 0.75em;
+  border-radius: 6px;
+  background: var(--g-yellow);
+  color: var(--g-yellow-ink);
+  font-size: 0.8em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.g-file-download svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.g-file-download:hover {
+  background: var(--g-red);
+  color: #fff;
+}
+
+.g-file-download:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* telefono: margine interno più stretto per tutti i riquadri */
+@media (max-width: 640px) {
+  :root {
+    --g-box-pad-x: 14px;
+  }
+}
+
+/* telefono: resta solo la freccia, il nome del file ha più spazio */
+@media (max-width: 480px) {
+  .g-file-download {
+    padding: 0.5em;
+  }
+
+  .g-file-download span {
+    display: none;
+  }
+}
+
+/* ==========================================================
+   Testo normale giustificato, con la sillabazione italiana
+   (lang="it" in app/layout.tsx) per non lasciare buchi tra le parole
+   ========================================================== */
+
+.notion-page .notion-text {
+  text-align: justify;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+}
+
+/* footer: mail e telefono alla grandezza originale (100%, 16px),
+   non ingranditi come il resto del testo */
+.g-contacts ul {
+  font-size: 16px;
+}
+
+/* ==========================================================
+   Protezione dalla copia (vedi anche components/NotionPage.tsx):
+   il testo non si seleziona e le immagini non si trascinano.
+   I campi di testo (ricerca) restano selezionabili.
+   ========================================================== */
+
+.notion-app,
+.g-footer {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none; /* niente menu "Copia/Salva" tenendo premuto su iPhone */
+}
+
+.notion-app img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+.notion-app input,
+.notion-app textarea,
+.notion-search,
+.notion-search * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ==========================================================
+   Larghezza del contenuto sugli schermi larghi (oltre 1300px)
+   react-notion-x dà al contenuto tutta la larghezza della pagina (900px)
+   senza togliere i margini interni (16px per lato): testo, riquadri e
+   gallerie sporgevano di 32px a destra rispetto alla linea sotto il titolo.
+   Ora il contenuto è largo quanto la pagina, margini compresi, ed è centrato.
+   ========================================================== */
+
+@media (min-width: 1300px) and (min-height: 300px) {
+  .notion-page-content-has-aside .notion-page-content-inner {
+    width: calc(var(--notion-max-width) - 2 * min(16px, 8vw));
+    max-width: calc(var(--notion-max-width) - 2 * min(16px, 8vw));
+  }
+}
+
+/* la linea sotto il titolo delle sottopagine: a tutta larghezza della pagina,
+   tratteggiata come i divisori del sito */
+.notion-collection-page-properties,
+.notion-collection-row {
+  width: 100%;
+}
+
+.notion-collection-row {
+  border-bottom: 1px dashed var(--g-line);
+}
+
+/* ==========================================================
+   Raccoglitore (callout 🗂️ in Notion → components/Scrapbook.tsx)
+   Il callout non ha più l'aspetto di avviso: il contenuto originale (foto
+   messe in fila) si nasconde e al suo posto compare la finestra.
+   ========================================================== */
+
+.notion-callout.notion-scrapbook_co.notion-scrapbook_co {
+  display: block;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none !important;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* le foto originali si nascondono solo quando la finestra è pronta:
+   se il JavaScript non parte, le foto restano visibili invece di sparire */
+.notion-scrapbook_co > .notion-page-icon-inline,
+.notion-scrapbook_co:has(> .g-scrapbook-mount section) > .notion-callout-text {
+  display: none;
+}
+
+/* finché la finestra non è pronta, la riga "🗂️" non si vede */
+.notion-scrapbook_co > .notion-callout-text > .notion-text:first-child:empty {
+  display: none;
+}
+
+.g-scrapbook-mount {
+  width: 100%;
+}
+
+/* ==========================================================
+   Foto singole: sempre intere, nelle proporzioni originali.
+   React-notion-x le chiude in un riquadro di altezza fissa e le ritaglia
+   (object-fit: cover). Fuori da gallerie e raccoglitore la foto prende la
+   larghezza scelta in Notion e l'altezza che le spetta: nessun ritaglio.
+   ========================================================== */
+
+.notion-page
+  figure.notion-asset-wrapper-image:not(.notion-gallery_co *):not(
+    .notion-scrapbook_co *
+  )
+  > div {
+  height: auto !important;
+  padding-bottom: 0 !important;
+}
+
+.notion-page
+  figure.notion-asset-wrapper-image:not(.notion-gallery_co *):not(
+    .notion-scrapbook_co *
+  )
+  img {
+  height: auto !important;
+  max-height: none;
+  object-fit: contain !important;
+}
+
+/* ==========================================================
+   Menu contestuale del Mac: solo i database segnati con 🖱️ in Notion
+   (vedi lib/notion.ts); gli altri restano cartelle o liste come prima.
+   Ogni voce è una sotto-pagina del database: un clic e si entra.
+   Le proprietà visibili nella lista stanno a destra, in grigio, come le
+   scorciatoie da tastiera; i gruppi sono separati da una linea sottile.
+   ========================================================== */
+
+.notion-contextmenu_co .notion-collection:has(.notion-list-collection) {
+  --menu-bg: rgba(242, 242, 242, 0.7); /* 70% opaco */
+  --menu-ink: rgba(0, 0, 0, 0.86);
+  --menu-muted: rgba(0, 0, 0, 0.42);
+  --menu-line: rgba(0, 0, 0, 0.1);
+  --menu-edge: rgba(0, 0, 0, 0.2);
+  --menu-shine: rgba(255, 255, 255, 0.65);
+  /* scala dell'intero menu: 0.85 = 15% più piccolo dell'originale */
+  --menu-k: 0.85;
+
+  align-self: flex-start;
+  width: max-content;
+  min-width: calc(230px * var(--menu-k));
+  max-width: min(calc(360px * var(--menu-k)), 100%);
+  margin: 0.5em 0 1em;
+  padding: calc(6px * var(--menu-k));
+  border: 0.5px solid var(--menu-edge);
+  border-radius: calc(10px * var(--menu-k));
+  background: var(--menu-bg);
+  box-shadow:
+    inset 0 0 0 0.5px var(--menu-shine),
+    0 calc(12px * var(--menu-k)) calc(32px * var(--menu-k)) rgba(0, 0, 0, 0.18),
+    0 calc(2px * var(--menu-k)) calc(8px * var(--menu-k)) rgba(0, 0, 0, 0.1);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  backdrop-filter: blur(24px) saturate(1.8);
+  color: var(--menu-ink);
+  font-size: calc(var(--g-text-size) * var(--menu-k));
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  text-align: left;
+}
+
+.dark-mode
+  .notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection) {
+  --menu-bg: rgba(40, 40, 42, 0.7); /* 70% opaco */
+  --menu-ink: rgba(255, 255, 255, 0.9);
+  --menu-muted: rgba(255, 255, 255, 0.45);
+  --menu-line: rgba(255, 255, 255, 0.12);
+  --menu-edge: rgba(0, 0, 0, 0.6);
+  --menu-shine: rgba(255, 255, 255, 0.14);
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-list-collection,
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-list-view {
+  width: 100%;
+  padding: 0;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-list-body {
+  padding: 0;
+  overflow: visible;
+  border-top: 0;
+}
+
+/* la voce: una riga del menu, non più una cartella */
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  a.notion-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(28px * var(--menu-k));
+  min-height: 1.75em;
+  margin: 0;
+  padding: calc(3px * var(--menu-k)) calc(12px * var(--menu-k));
+  overflow: hidden;
+  border: 0;
+  border-radius: calc(5px * var(--menu-k));
+  background: none;
+  color: var(--menu-ink);
+  font-size: 1em;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.3;
+  text-decoration: none;
+  text-transform: none;
+  transition: none;
+  /* al tocco il telefono non aggiunge il suo riflesso blu: sul giallo
+     diventerebbe verde */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  a.notion-list-item::before {
+  content: none;
+}
+
+/* voce evidenziata: il colore d'accento del sito, il giallo */
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  a.notion-list-item:hover,
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  a.notion-list-item:active,
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  a.notion-list-item:focus-visible {
+  background: var(--g-yellow);
+  color: #000;
+  outline: none;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-list-item-title {
+  gap: calc(8px * var(--menu-k));
+  min-width: 0;
+  font-weight: 400;
+}
+
+/* niente icone delle pagine: solo il testo, come nei menu del Mac */
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-list-item-title
+  .notion-page-icon-inline {
+  display: none;
+}
+
+/* proprietà a destra, come le scorciatoie (⌘C) */
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-list-item-body {
+  flex: none;
+  color: var(--menu-muted);
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-list-item-property {
+  margin-left: calc(12px * var(--menu-k));
+  font-size: inherit;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-list-item-property
+  * {
+  padding: 0;
+  background: none !important;
+  color: inherit !important;
+  font-size: inherit;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  a.notion-list-item:hover
+  .notion-list-item-body {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* gruppi del database: linea di separazione e nome del gruppo in grigio */
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-collection-group {
+  margin: 0;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-collection-group
+  + .notion-collection-group {
+  margin-top: calc(5px * var(--menu-k));
+  padding-top: calc(5px * var(--menu-k));
+  border-top: 1px solid var(--menu-line);
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-collection-group-title {
+  display: block;
+  padding: calc(3px * var(--menu-k)) calc(12px * var(--menu-k))
+    calc(1px * var(--menu-k));
+  color: var(--menu-muted);
+  font-size: 0.75em;
+  font-weight: 700;
+  list-style: none;
+  pointer-events: none;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-collection-group-title::-webkit-details-marker {
+  display: none;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-collection-group-title
+  * {
+  padding: 0;
+  background: none !important;
+  color: inherit !important;
+  font-size: inherit;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-board-th-count {
+  display: none;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  .notion-collection-load-more {
+  padding: calc(2px * var(--menu-k)) calc(12px * var(--menu-k));
+  color: var(--menu-muted);
+  font-size: 0.85em;
+}
+
+/* ---------- Menu sopra una foto (callout 🖱️) ---------- */
+
+.notion-callout.notion-contextmenu_co {
+  display: block;
+  min-height: 0;
+  margin: 1em 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none !important;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.notion-contextmenu_co > .notion-page-icon-inline,
+.notion-contextmenu_co > .notion-callout-text > div:has(+ .notion-collection) {
+  display: none;
+}
+
+.notion-contextmenu_co > .notion-callout-text {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.notion-contextmenu_co figure.notion-asset-wrapper {
+  margin-top: 0;
+}
+
+.notion-contextmenu_co figure img {
+  cursor: default;
+}
+
+/* niente riflesso blu del telefono quando si tocca la foto o il menu */
+.notion-callout.notion-contextmenu_co {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* il menu si apre sulla foto, nel punto calcolato da NotionPage.tsx */
+.notion-contextmenu_co.is-ready:not(.is-stacked) .notion-collection {
+  position: absolute;
+  z-index: 2;
+  top: var(--menu-top, 24px);
+  left: var(--menu-left, 24px);
+  margin: 0;
+}
+
+.notion-contextmenu_co.is-open:not(.is-stacked) .notion-collection {
+  animation: g-menu-open 0.14s ease-out;
+}
+
+/* foto troppo piccola per il menu: il menu va sotto la foto */
+.notion-contextmenu_co.is-stacked .notion-collection {
+  margin-top: 10px;
+}
+
+@keyframes g-menu-open {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notion-contextmenu_co.is-open .notion-collection {
+    animation: none;
   }
 }

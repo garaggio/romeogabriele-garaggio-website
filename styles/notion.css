@@ -8,7 +8,8 @@
  */
 
 .notion {
-  --notion-max-width: 720px;
+  /* stesso spazio di scrittura della home su tutte le pagine */
+  --notion-max-width: 900px;
   --notion-header-height: 54px;
 }
 
@@ -119,11 +120,13 @@
   }
 }
 
+/* citazione: stessa grandezza e interlinea del testo (vedi --g-text-size
+   in global.css); resta in corsivo con la barra a sinistra */
 .notion-quote {
-  padding: 0.2em 0.75em;
-  line-height: 1.5;
+  padding: 0.1em 0.9em;
+  line-height: 1.65;
   font-style: italic;
-  font-size: 1.2em;
+  font-size: var(--g-text-size);
   border-left: 4px solid #67bdfc;
 }
 
@@ -142,7 +145,7 @@
 }
 
 @media only screen and (max-width: 920px) {
-  .index-page.notion-page {
+  .notion-page {
     padding-left: 2vw;
     padding-right: 2vw;
   }
@@ -347,14 +350,20 @@
   background: none !important;
 }
 
-/* if you don't want rounded page icon images, remove this */
+/* icona della pagina (quella caricata in Notion: Icona → Carica) sotto la
+   copertina: intera, senza ritaglio a cerchio. L'ombra segue la sagoma
+   dell'immagine (drop-shadow), così un PNG trasparente come la cartella non
+   ha un disco scuro intorno. */
 .notion-page-icon-hero.notion-page-icon-image {
-  border-radius: 50%;
-  box-shadow: var(--g-shadow);
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
 }
 .notion-page-icon-hero.notion-page-icon-image span,
 .notion-page-icon-hero.notion-page-icon-image img {
-  border-radius: 50%;
+  border-radius: 0;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
 }
 
 .notion-header {

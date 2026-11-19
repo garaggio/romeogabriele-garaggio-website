@@ -6,60 +6,13 @@ const STRIP = ['−', '+', 'you', 'tu']
 const currentYear = new Date().getFullYear()
 
 export function FooterImpl() {
-  const stripRef = React.useRef<HTMLDivElement>(null)
-  const barRef = React.useRef<HTMLDivElement>(null)
-
-  React.useEffect(() => {
-    const strip = stripRef.current
-    const bar = barRef.current
-    if (!strip || !bar) return
-
-    let observer: IntersectionObserver | undefined
-
-    const setup = () => {
-      observer?.disconnect()
-
-      // la barra fissa copia posizione e larghezza della striscia in fondo
-      const { left, width } = strip.getBoundingClientRect()
-      bar.style.left = `${left}px`
-      bar.style.width = `${width}px`
-      bar.classList.add('is-ready')
-
-      // quando la striscia in fondo raggiunge la barra fissa, la barra sparisce
-      const offset = Math.max(
-        0,
-        window.innerHeight - bar.getBoundingClientRect().bottom
-      )
-      observer = new IntersectionObserver(
-        ([entry]) => {
-          // Aggiungi questo controllo per garantire a TypeScript che entry sia definito
-          if (!entry) return
-
-          const limit = entry.rootBounds?.bottom ?? window.innerHeight
-          document.body.classList.toggle(
-            'g-strip-landed',
-            entry.boundingClientRect.bottom <= limit
-          )
-        },
-        { rootMargin: `0px 0px -${offset}px 0px`, threshold: [0, 1] }
-      )
-      observer.observe(strip)
-    }
-
-    setup()
-    window.addEventListener('resize', setup)
-
-    return () => {
-      window.removeEventListener('resize', setup)
-      observer?.disconnect()
-      document.body.classList.remove('g-strip-landed')
-    }
-  }, [])
-
   return (
     <>
-      {/* barra che accompagna lo scorrimento */}
-      <div className='g-strip g-strip-fixed' ref={barRef} aria-hidden='true'>
+      {/* striscia che accompagna lo scorrimento e si ferma sopra il footer.
+          È "sticky": la tiene il browser, senza calcoli, quindi resta al suo
+          posto anche quando su telefono la barra di Chrome/Safari compare e
+          scompare mentre scorri */}
+      <div className='g-strip g-strip-sticky' aria-hidden='true'>
         {STRIP.map((s) => (
           <span key={s}>{s}</span>
         ))}
@@ -67,13 +20,6 @@ export function FooterImpl() {
 
       {/* Usiamo il tag semantico <footer> invece del div generico */}
       <footer className='g-footer'>
-        {/* striscia in fondo alla pagina: la barra fissa si ferma qui */}
-        <div className='g-strip' ref={stripRef} aria-hidden='true'>
-          {STRIP.map((s) => (
-            <span key={s}>{s}</span>
-          ))}
-        </div>
-
         <div className='g-contacts'>
           <p className='g-contacts-title'>Benvenuto a bordo</p>
 

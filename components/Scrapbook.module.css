@@ -1,0 +1,501 @@
+/* ==========================================================================
+   Raccoglitore (Scrapbook) — finestra Mac OS classico in chiave editoriale
+   Helvetica, nessun arrotondamento, bordi netti e rilievi "Platinum" da 1px
+   al posto delle ombre sfumate.
+   ========================================================================== */
+
+.window {
+  --sb-face: #dddddd; /* grigio Platinum */
+  --sb-light: #ffffff; /* luce del rilievo (sopra e a sinistra) */
+  --sb-dark: #888888; /* ombra del rilievo (sotto e a destra) */
+  --sb-ink: #000000;
+  --sb-stage: #eeeeee;
+  --sb-track: #d0d0d0;
+  --sb-bevel: inset 1px 1px 0 var(--sb-light), inset -1px -1px 0 var(--sb-dark);
+  --sb-pad: 12px;
+
+  position: relative;
+  width: 100%;
+  margin: 1.5rem 0;
+  box-sizing: border-box;
+  border: 1px solid var(--sb-ink);
+  border-radius: 0;
+  background: var(--sb-face);
+  color: var(--sb-ink);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+  /* smusso interno da 1px + ombra rigida piena */
+  box-shadow:
+    var(--sb-bevel),
+    2px 2px 0 var(--sb-ink);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.window *,
+.window *::before,
+.window *::after {
+  box-sizing: border-box;
+  border-radius: 0;
+}
+
+.window:focus-visible {
+  outline: 2px solid var(--g-yellow, #ffd83a);
+  outline-offset: 3px;
+}
+
+/* ---------- Barra del titolo: righe orizzontali sottili ---------- */
+
+.titlebar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--sb-ink);
+  background: var(--sb-face);
+}
+
+/* le pinstripes: solchi di luce e ombra tra il bordo e il titolo */
+.titlebar::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 4px;
+  bottom: 5px;
+  left: 4px;
+  background: repeating-linear-gradient(
+    180deg,
+    var(--sb-light) 0 1px,
+    var(--sb-dark) 1px 2px,
+    transparent 2px 3px
+  );
+}
+
+/* quadratino di chiusura, con un margine pieno che interrompe le righe */
+.closeBox {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--sb-ink);
+  background: var(--sb-face);
+  box-shadow:
+    0 0 0 4px var(--sb-face),
+    inset 1px 1px 0 var(--sb-light),
+    inset -1px -1px 0 var(--sb-dark);
+  transform: translateY(-50%);
+}
+
+/* il titolo in un riquadro pieno che interrompe le righe dietro il testo */
+.title {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  padding: 0 8px;
+  overflow: hidden;
+  background: var(--sb-face);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Corpo della finestra ---------- */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  background: var(--sb-face);
+}
+
+/* area visiva: grigio neutro leggermente incassato */
+.stage {
+  display: flex;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  height: clamp(260px, 58vh, 600px);
+  padding: clamp(20px, 4vw, 44px);
+  background: var(--sb-stage);
+  box-shadow:
+    inset 1px 1px 0 var(--sb-dark),
+    inset -1px -1px 0 var(--sb-light);
+}
+
+.inspect {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* occupa tutta l'area visiva: così la foto si adatta senza uscire */
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.inspect:focus-visible {
+  outline: 2px solid var(--sb-ink);
+  outline-offset: 3px;
+}
+
+/* la fotografia: intera, con un bordo secco su fondo bianco */
+.photo {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border: 1px solid var(--sb-ink);
+  background: #ffffff;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+/* ---------- Fascia dei metadati ---------- */
+
+.meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 8px var(--sb-pad) 9px;
+  border-top: 1px solid var(--sb-ink);
+  background: #ffffff;
+}
+
+.metaText {
+  min-width: 0;
+}
+
+/* tutti i testi nella stessa cella: la più alta decide l'altezza */
+.metaStack {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.metaStack > .metaText {
+  grid-area: 1 / 1;
+}
+
+.metaStack > .metaText[data-hidden] {
+  visibility: hidden;
+}
+
+.metaLine,
+.description,
+.counter {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+}
+
+.metaLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 14px;
+}
+
+.filename {
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.metaDetail {
+  color: #444444;
+}
+
+.description {
+  margin-top: 2px;
+  color: #444444;
+}
+
+.counter {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- Barra di scorrimento classica ---------- */
+
+.scrollbar {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 16px;
+  height: 16px;
+  border-top: 1px solid var(--sb-ink);
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 15px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--sb-face);
+  box-shadow: var(--sb-bevel);
+  color: var(--sb-ink);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 8px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.arrow:first-child {
+  border-right: 1px solid var(--sb-ink);
+}
+
+.arrow:last-child {
+  border-left: 1px solid var(--sb-ink);
+}
+
+/* premuto: il rilievo si inverte */
+.arrow:active:not(:disabled) {
+  background: #bbbbbb;
+  box-shadow:
+    inset 1px 1px 0 var(--sb-dark),
+    inset -1px -1px 0 var(--sb-light);
+}
+
+.arrow:disabled {
+  color: var(--sb-dark);
+  cursor: default;
+}
+
+/* binario */
+.track {
+  position: relative;
+  height: 15px;
+  background: var(--sb-track);
+  box-shadow: inset 1px 1px 0 #b4b4b4;
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* cursore: largo in proporzione al numero di immagini */
+.thumb {
+  --sb-thumb: max(18px, var(--sb-size, 10%));
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc((100% - var(--sb-thumb)) * var(--sb-pos, 0));
+  width: var(--sb-thumb);
+  border-right: 1px solid var(--sb-ink);
+  border-left: 1px solid var(--sb-ink);
+  background: var(--sb-face);
+  box-shadow: var(--sb-bevel);
+  cursor: grab;
+  touch-action: none;
+  transition: left 0.12s ease-out;
+}
+
+.thumb[data-dragging] {
+  cursor: grabbing;
+  transition: none;
+}
+
+/* le lineette verticali zigrinate al centro del cursore */
+.thumb::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 7px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--sb-light) 0 1px,
+    var(--sb-dark) 1px 2px,
+    transparent 2px 3px
+  );
+  transform: translate(-50%, -50%);
+}
+
+/* ---------- Telefono: stesso carattere, spazi più stretti ---------- */
+
+@media (max-width: 640px) {
+  .window {
+    --sb-pad: 10px;
+    margin: 1.25rem 0;
+  }
+
+  .titlebar {
+    padding: 0 28px;
+  }
+
+  .stage {
+    height: clamp(220px, 78vw, 420px);
+    padding: 16px;
+  }
+
+  /* i metadati vanno a capo in ordine; il contatore resta in alto a destra */
+  .meta {
+    flex-wrap: wrap;
+  }
+
+  .metaStack {
+    flex: 1 1 60%;
+  }
+
+  .metaLine {
+    flex-direction: column;
+    gap: 1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thumb {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Versione "Platinum ritoccato" (in Notion: segno 🗃️)
+   Stessa struttura iconica (barra a righe, quadratino, una foto alla volta,
+   barra di scorrimento classica), avvicinata al sito: angoli appena
+   arrotondati, ombra morbida con una traccia del bordo netto, giallo dove si
+   tocca, testo più grande e dissolvenza tra le foto.
+   ========================================================================== */
+
+.modern {
+  --sb-radius: 6px;
+  --sb-accent: var(--g-yellow, #ffd83a);
+
+  overflow: hidden;
+  border-radius: var(--sb-radius);
+  box-shadow:
+    var(--sb-bevel),
+    1px 1px 0 rgba(0, 0, 0, 0.55),
+    0 14px 34px rgba(0, 0, 0, 0.26),
+    0 3px 10px rgba(0, 0, 0, 0.16);
+}
+
+.modern .title {
+  font-size: 13px;
+}
+
+/* il quadratino si accende di giallo al passaggio del mouse */
+.modern .closeBox {
+  transition: background-color 0.15s ease;
+}
+
+.modern .titlebar:hover .closeBox {
+  background: var(--sb-accent);
+}
+
+.modern .inspect:focus-visible {
+  outline-color: var(--sb-accent);
+}
+
+/* dati sotto la foto: vicini alla misura del testo del sito */
+.modern .metaLine,
+.modern .description,
+.modern .counter {
+  font-size: 15px;
+}
+
+.modern .meta {
+  padding: 10px 14px 11px;
+}
+
+/* cambio di foto: dissolvenza breve invece dello scatto */
+.modern .photo {
+  animation: sb-fade 0.28s ease-out;
+}
+
+@keyframes sb-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* cursore della barra di scorrimento: giallo, con le righe in rilievo */
+.modern .thumb {
+  background: var(--sb-accent);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.65),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.28);
+}
+
+.modern .thumb::after {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.7) 0 1px,
+    rgba(0, 0, 0, 0.35) 1px 2px,
+    transparent 2px 3px
+  );
+}
+
+.modern .arrow:active:not(:disabled) {
+  background: var(--sb-accent);
+}
+
+@media (max-width: 640px) {
+  .modern .metaLine,
+  .modern .description,
+  .modern .counter {
+    font-size: 14px;
+  }
+
+  .modern .meta {
+    padding: 8px 10px 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modern .photo,
+  .modern .closeBox {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ---------- Ingrandimento della foto (entrambe le versioni) ----------
+   Stessi valori dello zoom della galleria a scorrimento: fondo nero all'80%,
+   0,3 s con la stessa curva. */
+
+.zoomOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  cursor: zoom-out;
+  transition: opacity 0.3s;
+}
+
+.zoomOverlay.zoomOpen {
+  opacity: 1;
+}
+
+.zoomImage {
+  position: fixed;
+  z-index: 1001;
+  margin: 0;
+  object-fit: contain;
+  cursor: zoom-out;
+  transform-origin: center center;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+  will-change: transform;
+  -webkit-user-drag: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zoomOverlay,
+  .zoomImage {
+    transition: none;
+  }
+}

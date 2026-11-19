@@ -3,7 +3,12 @@ import {
   type SearchParams,
   type SearchResults
 } from 'notion-types'
-import { getBlockValue, getTextContent, mergeRecordMaps } from 'notion-utils'
+import {
+  getBlockCollectionId,
+  getBlockValue,
+  getTextContent,
+  mergeRecordMaps
+} from 'notion-utils'
 import pMap from 'p-map'
 import pMemoize from 'p-memoize'
 
@@ -70,6 +75,12 @@ export async function getPage(pageId: string): Promise<ExtendedRecordMap> {
   await getTweetsMap(recordMap)
 
   applyBookmarkCaptions(recordMap)
+
+  markPhotoGalleries(recordMap)
+
+  markScrapbooks(recordMap)
+
+  markContextMenus(recordMap)
 
   return recordMap
 }
@@ -155,6 +166,295 @@ function applyBookmarkCaptions(recordMap: ExtendedRecordMap) {
 
     const caption = getTextContent(block.properties?.caption)
     if (caption) block.properties.description = [[caption]]
+  }
+}
+
+// Galleria a scorrimento: in Notion è un callout con icona 🖼️ / 📷 / 📸
+// (oppure con scritto solo "Galleria") e le foto messe DENTRO il callout.
+// Gli diamo il colore finto "gallery": react-notion-x lo scrive come classe
+// "notion-gallery_co" e il CSS lo trasforma in una striscia orizzontale.
+// Icona e testo del callout non servono più: li togliamo, restano solo le foto.
+const galleryIcons = new Set(['🖼️', '🖼', '📷', '📸'])
+
+const isGalleryMarker = (text: string) => {
+  const t = text.trim().toLowerCase()
+  return galleryIcons.has(t) || t === 'galleria'
+}
+
+function markPhotoGalleries(recordMap: ExtendedRecordMap) {
+  const textOf = (id: string) => {
+    const child: any = getBlockValue(recordMap.block[id])
+    return child?.type === 'text'
+      ? getTextContent(child.properties?.title)
+      : undefined
+  }
+
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (block?.type !== 'callout') continue
+
+    const content: string[] = block.content ?? []
+    // i callout nuovi di Notion ("versione 2") non hanno testo proprio: la
+    // prima riga scritta dentro è un blocco di testo figlio
+    const firstLine = content[0] ? textOf(content[0]) : undefined
+
+    const isGallery =
+      galleryIcons.has(block.format?.page_icon) ||
+      isGalleryMarker(getTextContent(block.properties?.title)) ||
+      (firstLine !== undefined && isGalleryMarker(firstLine))
+    if (!isGallery) continue
+
+    block.format = { ...block.format, block_color: 'gallery' }
+    delete block.format.page_icon
+    if (block.properties) delete block.properties.title
+
+    // via la riga "🖼️"/"Galleria" e le righe vuote: restano solo le foto
+    block.content = content.filter((id) => {
+      const text = textOf(id)
+      return (
+        text === undefined || !(text.trim() === '' || isGalleryMarker(text))
+      )
+    })
+  }
+}
+
+// Raccoglitore (components/Scrapbook.tsx): un callout con le foto DENTRO e
+// come icona (o all'inizio della prima riga) uno di questi segni:
+//   🗂️ / 📇 (o la parola "Raccoglitore") → versione classica, Mac OS Platinum
+//   🗃️                                  → versione "Platinum ritoccato":
+//                                         angoli morbidi, ombra diffusa, giallo
+// Il testo dopo il segno diventa il titolo della finestra:
+// "🗂️ Concerti 2024" → "Galleria — Concerti 2024".
+// Lo marchiamo con il colore finto "scrapbook" (classe notion-scrapbook_co):
+// NotionPage.tsx ci disegna dentro il componente con le foto del callout.
+const modernScrapbookIcons = ['🗃️', '🗃']
+const scrapbookIcons = ['🗂️', '🗂', '📇', ...modernScrapbookIcons]
+
+const scrapbookMarker = (text: string) => {
+  const t = text.trim()
+  const icon = scrapbookIcons.find((i) => t.startsWith(i))
+  if (icon) return t.slice(icon.length).trim()
+  if (/^raccoglitore\b/i.test(t)) {
+    return t
+      .slice('raccoglitore'.length)
+      .replace(/^[\s:—–-]+/, '')
+      .trim()
+  }
+  return undefined
+}
+
+function markScrapbooks(recordMap: ExtendedRecordMap) {
+  const textOf = (id: string) => {
+    const child: any = getBlockValue(recordMap.block[id])
+    return child?.type === 'text'
+      ? getTextContent(child.properties?.title)
+      : undefined
+  }
+
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (block?.type !== 'callout') continue
+
+    const content: string[] = block.content ?? []
+    const firstLine = content[0] ? textOf(content[0]) : undefined
+    const ownTitle = getTextContent(block.properties?.title)
+
+    const fromIcon = scrapbookIcons.includes(block.format?.page_icon)
+    const fromTitle = scrapbookMarker(ownTitle)
+    const fromFirstLine =
+      firstLine === undefined ? undefined : scrapbookMarker(firstLine)
+    if (!fromIcon && fromTitle === undefined && fromFirstLine === undefined) {
+      continue
+    }
+
+    // il nome della finestra: testo dopo il segno, o il testo del callout
+    const name =
+      fromTitle ?? fromFirstLine ?? (ownTitle.trim() || firstLine?.trim())
+    // 🗃️ (icona o inizio del testo) sceglie la versione "Platinum ritoccato"
+    const modern = [block.format?.page_icon, ownTitle.trim(), firstLine?.trim()]
+      .filter(Boolean)
+      .some((t) => modernScrapbookIcons.some((i) => t.startsWith(i)))
+    block.format = {
+      ...block.format,
+      block_color: 'scrapbook',
+      scrapbook_title: name ? `Galleria — ${name}` : undefined,
+      scrapbook_variant: modern ? 'modern' : 'classic'
+    }
+    delete block.format.page_icon
+    if (block.properties) delete block.properties.title
+
+    // via la riga del segno e le righe vuote: restano le foto
+    block.content = content.filter((id, i) => {
+      const text = textOf(id)
+      if (text === undefined) return true
+      if (i === 0 && fromFirstLine !== undefined) return false
+      return text.trim() !== ''
+    })
+  }
+}
+
+// Menu contestuale del Mac (tasto destro), a scelta: i database restano come
+// sono in Notion (cartelle affiancate, lista…) finché non li segni con 🖱️.
+// Tre modi di scriverlo in Notion:
+//  1. foto con didascalia che inizia con "🖱️" e subito sotto un database:
+//     il menu si apre sopra la foto;
+//  2. un callout con icona 🖱️ (o prima riga "🖱️") con dentro una foto e un
+//     database: come sopra; senza foto il menu sta da solo;
+//  3. un database il cui nome (o il nome della vista) inizia con "🖱️":
+//     menu da solo, nel punto della pagina in cui si trova.
+// Qualsiasi vista va bene (galleria, lista, tabella): nel menu diventa lista.
+// Dopo il segno si può indicare dove aprire il menu sulla foto, in percentuale
+// da sinistra e dall'alto: "🖱️ 60 25" (di base 55 20).
+// Il callout prende il colore finto "contextmenu" (classe notion-contextmenu_co)
+// e la posizione in format.menu_position; il resto lo fanno CSS e NotionPage.tsx.
+const menuIcons = ['🖱️', '🖱']
+
+const menuMarker = (text: string) => {
+  const t = text.trim()
+  const icon = menuIcons.find((i) => t.startsWith(i))
+  if (!icon) return undefined
+  const rest = t.slice(icon.length)
+
+  // "60 25", "60% 25%", "60, 25": le prime due cifre sono la posizione
+  const match = rest.match(/^\s*(\d{1,3})\s*%?\s*[,;x×\s]\s*(\d{1,3})\s*%?/)
+  return {
+    position: match
+      ? `${Math.min(100, +match[1]!)} ${Math.min(100, +match[2]!)}`
+      : undefined,
+    rest: (match ? rest.slice(match[0].length) : rest).trim()
+  }
+}
+
+function markContextMenus(recordMap: ExtendedRecordMap) {
+  const valueOf = (id: string): any => getBlockValue(recordMap.block[id])
+  const textOf = (id: string) => {
+    const child = valueOf(id)
+    return child?.type === 'text'
+      ? getTextContent(child.properties?.title)
+      : undefined
+  }
+  const isDatabase = (block: any) => block?.type === 'collection_view'
+  const handled = new Set<string>()
+
+  // nel menu ogni vista del database si disegna come lista
+  const asMenu = (block: any) => {
+    handled.add(block.id)
+    for (const viewId of block.view_ids ?? []) {
+      const view: any = getBlockValue(recordMap.collection_view[viewId])
+      if (view) view.type = 'list'
+    }
+  }
+
+  // stessa forma di un blocco già presente (react-notion-x la legge così)
+  const storeBlock = (like: any, value: any) => {
+    recordMap.block[value.id] = (
+      like?.value?.value
+        ? { ...like, value: { ...like.value, value } }
+        : { ...like, value }
+    ) as any
+  }
+
+  // mette i blocchi indicati (a partire da "first") dentro un callout menu
+  const wrap = (first: any, ids: string[], position?: string) => {
+    const parent = valueOf(first.parent_id)
+    const siblings: string[] = parent?.content ?? []
+    const at = siblings.indexOf(first.id)
+    if (at < 0) return
+    const wrapperId = `${first.id.slice(0, -4)}menu`
+    storeBlock(recordMap.block[first.id], {
+      id: wrapperId,
+      type: 'callout',
+      version: 1,
+      alive: true,
+      parent_id: first.parent_id,
+      parent_table: 'block',
+      space_id: first.space_id,
+      properties: {},
+      content: ids,
+      format: { block_color: 'contextmenu', menu_position: position }
+    })
+    parent.content = [
+      ...siblings.slice(0, at),
+      wrapperId,
+      ...siblings.slice(at + ids.length)
+    ]
+  }
+
+  const blocks = Object.values(recordMap.block).map((entry) =>
+    getBlockValue(entry)
+  ) as any[]
+
+  for (const block of blocks) {
+    // 1. foto con didascalia "🖱️ …" e subito sotto un database
+    if (block?.type === 'image') {
+      const marker = menuMarker(getTextContent(block.properties?.caption))
+      if (!marker) continue
+      const siblings: string[] = valueOf(block.parent_id)?.content ?? []
+      const nextId = siblings[siblings.indexOf(block.id) + 1]
+      const next = nextId ? valueOf(nextId) : undefined
+      // la didascalia vera è quello che resta dopo il segno e la posizione
+      block.properties.caption = marker.rest ? [[marker.rest]] : []
+      if (!isDatabase(next)) continue
+      asMenu(next)
+      wrap(block, [block.id, nextId!], marker.position)
+      continue
+    }
+
+    // 2. callout 🖱️ con dentro foto e/o database
+    if (block?.type !== 'callout') continue
+    const content: string[] = block.content ?? []
+    const firstLine = content[0] ? textOf(content[0]) : undefined
+    const fromIcon = menuIcons.includes(block.format?.page_icon)
+    const lineMarker =
+      firstLine === undefined ? undefined : menuMarker(firstLine)
+    const marker =
+      menuMarker(getTextContent(block.properties?.title)) ?? lineMarker
+    if (!fromIcon && !marker) continue
+
+    block.format = {
+      ...block.format,
+      block_color: 'contextmenu',
+      menu_position: marker?.position
+    }
+    delete block.format.page_icon
+    if (block.properties) delete block.properties.title
+    block.content = content.filter((id, i) => {
+      const text = textOf(id)
+      if (text === undefined) return true
+      if (i === 0 && lineMarker) return false
+      return text.trim() !== ''
+    })
+    for (const id of block.content) {
+      if (isDatabase(valueOf(id))) asMenu(valueOf(id))
+    }
+  }
+
+  // 3. database con nome (o vista) che inizia con "🖱️": menu da solo
+  for (const block of blocks) {
+    if (!isDatabase(block) || handled.has(block.id)) continue
+    const collection: any = getBlockValue(
+      recordMap.collection[getBlockCollectionId(block, recordMap) ?? '']
+    )
+    const views = (block.view_ids ?? []).map((id: string) =>
+      getBlockValue(recordMap.collection_view[id])
+    ) as any[]
+    const collectionName = getTextContent(collection?.name)
+    const marked =
+      menuMarker(collectionName) ||
+      views.some((view) => view?.name && menuMarker(view.name))
+    if (!marked) continue
+
+    // il segno non deve comparire da nessuna parte
+    if (menuMarker(collectionName)) {
+      collection.name = [[menuMarker(collectionName)!.rest]]
+    }
+    for (const view of views) {
+      if (view?.name && menuMarker(view.name)) {
+        view.name = menuMarker(view.name)!.rest
+      }
+    }
+    asMenu(block)
+    wrap(block, [block.id])
   }
 }
 

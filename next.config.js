@@ -4,8 +4,11 @@ export default {
     agentUpgrade: 'security'
   },
   // in sviluppo il sito si apre anche dall'indirizzo di rete del Mac (es. dal
-  // telefono): senza questo Next blocca i suoi script e la pagina resta ferma
-  allowedDevOrigins: ['192.168.0.157', '*.local'],
+  // telefono): senza questo Next blocca i suoi script e la pagina resta senza
+  // JavaScript (niente pulsante "Scarica", niente Raccoglitore, niente frecce).
+  // L'indirizzo del Mac cambia con la rete/router: autorizziamo tutte le reti
+  // di casa invece di un solo indirizzo.
+  allowedDevOrigins: ['192.168.*.*', '10.*.*.*', '*.local'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'www.notion.so' },

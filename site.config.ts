@@ -10,12 +10,12 @@ export default siteConfig({
 
   // basic site info (required)
   name: 'Romeo Gabriele | Studio Garaggio',
-  domain: 'romeogabrielegaraggio.it',
+  domain: 'garaggio.art',
   author:
     'Romeo Gabriele; costruito a partire dalla repository GitHub nextjs-notion-starter-kit (MIT) di Travis Fischer',
 
   // open graph metadata (optional)
-  description: 'website Biografia',
+  description: 'garaggio website',
 
   // default notion icon and cover images for site-wide consistency (optional)
   // page-specific values will override these site-wide defaults

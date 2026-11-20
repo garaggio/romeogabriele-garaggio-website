@@ -24,6 +24,7 @@ import { useSearchParam } from 'react-use'
 
 import type * as types from '@/lib/types'
 import * as config from '@/lib/config'
+import { getAppRows } from '@/lib/appstore'
 import { mapImageUrl } from '@/lib/map-image-url'
 import { mapPageUrl } from '@/lib/map-page-url'
 import { getScrapbooks } from '@/lib/scrapbook'
@@ -32,6 +33,7 @@ import { useDarkMode } from '@/lib/use-dark-mode'
 import { Footer } from './Footer'
 import { NotionPageHeader } from './NotionPageHeader'
 import { PageAside } from './PageAside'
+import { AppRow } from './AppRow'
 import { Scrapbook } from './Scrapbook'
 
 // -----------------------------------------------------------------------------
@@ -660,6 +662,37 @@ export function NotionPage({
     }
   }, [scrapbooks])
 
+  // Merch: i segnalibri 🛍️ (vedi lib/notion.ts e lib/appstore.ts) diventano
+  // righe in stile App Store (components/AppRow.tsx), con lo stesso sistema
+  // del Raccoglitore: un contenitore nel callout riempito con un portale.
+  const appRows = React.useMemo(() => getAppRows(recordMap), [recordMap])
+  const [appMounts, setAppMounts] = React.useState<
+    Array<{ key: string; node: HTMLElement; data: (typeof appRows)[number] }>
+  >([])
+
+  React.useEffect(() => {
+    const mounts: Array<{
+      key: string
+      node: HTMLElement
+      data: (typeof appRows)[number]
+    }> = []
+    for (const data of appRows) {
+      const host = document.querySelector<HTMLElement>(
+        `.notion-appstore_co.notion-block-${data.blockId}`
+      )
+      if (!host) continue
+      const node = document.createElement('div')
+      node.className = 'g-app-mount'
+      host.append(node)
+      mounts.push({ key: data.blockId, node, data })
+    }
+    setAppMounts(mounts)
+    return () => {
+      for (const mount of mounts) mount.node.remove()
+      setAppMounts([])
+    }
+  }, [appRows])
+
   return (
     <>
       {isLiteMode && <BodyClassName className='notion-lite' />}
@@ -685,6 +718,21 @@ export function NotionPage({
         pageAside={pageAside}
         footer={<Footer />}
       />
+
+      {appMounts.map(({ key, node, data }) =>
+        createPortal(
+          <AppRow
+            title={data.title}
+            subtitle={data.subtitle}
+            button={data.button}
+            note={data.note}
+            link={data.link}
+            icon={data.icon}
+          />,
+          node,
+          key
+        )
+      )}
 
       {scrapbookMounts.map(({ key, node, data }) =>
         createPortal(

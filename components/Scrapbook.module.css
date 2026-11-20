@@ -124,11 +124,18 @@
   align-items: center;
   justify-content: center;
   height: clamp(260px, 58vh, 600px);
-  padding: clamp(20px, 4vw, 44px);
+  /* il margine intorno alla foto sta nel pulsante dello zoom (.inspect):
+     così tutta l'area grigia attiva l'ingrandimento */
+  padding: 0;
   background: var(--sb-stage);
   box-shadow:
     inset 1px 1px 0 var(--sb-dark),
     inset -1px -1px 0 var(--sb-light);
+}
+
+/* tutta l'area grigia mostra la lente e ingrandisce al clic */
+.stage[data-zoomable] {
+  cursor: zoom-in;
 }
 
 .inspect {
@@ -140,7 +147,7 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 0;
+  padding: clamp(20px, 4vw, 44px);
   border: 0;
   background: none;
   cursor: zoom-in;
@@ -340,6 +347,9 @@
 
   .stage {
     height: clamp(220px, 78vw, 420px);
+  }
+
+  .inspect {
     padding: 16px;
   }
 

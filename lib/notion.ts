@@ -57,9 +57,39 @@ export async function getPage(pageId: string): Promise<ExtendedRecordMap> {
     const navigationLinkRecordMaps = await getNavigationLinkPages()
 
     if (navigationLinkRecordMaps?.length) {
+      // Le pagine della navigazione (es. il carrello → pagina Merch) servono
+      // solo per titoli e indirizzi dei link. Regole dell'unione:
+      // - le copiamo (structuredClone): sono in memoria, condivise tra le
+      //   richieste, e più sotto i blocchi vengono modificati (gallerie,
+      //   menu 🖱️…), quindi non devono sporcare la copia in memoria;
+      // - la pagina richiesta resta PRIMA nell'elenco dei blocchi (react-notion-x
+      //   disegna il primo blocco come pagina) e i suoi dati vincono sempre su
+      //   quelli, più vecchi o incompleti, presi dalla navigazione;
+      // - teniamo TUTTE le sezioni della pagina: mergeRecordMaps conosce solo
+      //   blocchi, database e poco altro, e scarterebbe per esempio
+      //   "automation", dove Notion tiene il testo dei pulsanti.
       recordMap = navigationLinkRecordMaps.reduce(
-        (map, navigationLinkRecordMap) =>
-          mergeRecordMaps(map, navigationLinkRecordMap),
+        (map, navigationLinkRecordMap): ExtendedRecordMap => {
+          const merged: ExtendedRecordMap = {
+            ...map,
+            ...mergeRecordMaps(map, structuredClone(navigationLinkRecordMap))
+          }
+          for (const table of Object.keys(map) as Array<
+            keyof ExtendedRecordMap
+          >) {
+            const records = map[table]
+            const target = merged[table]
+            if (
+              records &&
+              target &&
+              typeof records === 'object' &&
+              typeof target === 'object'
+            ) {
+              Object.assign(target, records)
+            }
+          }
+          return merged
+        },
         recordMap
       )
     }
@@ -73,6 +103,8 @@ export async function getPage(pageId: string): Promise<ExtendedRecordMap> {
   }
 
   await getTweetsMap(recordMap)
+
+  markAppRows(recordMap)
 
   applyBookmarkCaptions(recordMap)
 
@@ -156,15 +188,22 @@ async function resolveCustomEmojis(recordMap: ExtendedRecordMap) {
   }
 }
 
-// Didascalia dei segnalibri: react-notion-x non la disegna, quindi la mettiamo
-// al posto della descrizione automatica del sito, accanto all'immagine.
-// Testo semplice: un link nella caption finirebbe dentro l'<a> del segnalibro.
+// Segnalibri (link incorporati), due aspetti scelti dalla didascalia:
+//   🛍️ … → riga "App Store" del merch (vedi markAppRows qui sotto)
+//   👁️ … → finestra "Anteprima" del Mac (è anche l'aspetto senza segno)
+// Didascalia: react-notion-x non la disegna, quindi la mettiamo al posto
+// della descrizione automatica del sito, accanto all'immagine (senza il segno
+// 👁️). Testo semplice: un link nella caption finirebbe dentro l'<a>.
+const previewIcons = ['👁️', '👁']
+
 function applyBookmarkCaptions(recordMap: ExtendedRecordMap) {
   for (const entry of Object.values(recordMap.block)) {
     const block: any = getBlockValue(entry)
     if (block?.type !== 'bookmark') continue
 
-    const caption = getTextContent(block.properties?.caption)
+    let caption = getTextContent(block.properties?.caption).trim()
+    const icon = previewIcons.find((i) => caption.startsWith(i))
+    if (icon) caption = caption.slice(icon.length).trim()
     if (caption) block.properties.description = [[caption]]
   }
 }
@@ -455,6 +494,69 @@ function markContextMenus(recordMap: ExtendedRecordMap) {
     }
     asMenu(block)
     wrap(block, [block.id])
+  }
+}
+
+// Riga "App Store" per il merch (components/AppRow.tsx).
+// In Notion: un segnalibro (link incorporato) con la didascalia che inizia con
+// 🛍️ e i campi separati da "|", tutti facoltativi:
+//   🛍️ Nome | Sottotitolo | Testo del pulsante | Nota sotto il pulsante
+// L'icona dell'app è l'immagine messa SUBITO SOPRA il segnalibro (PNG o SVG):
+// la togliamo dal flusso della pagina e la usiamo come icona. Senza immagine
+// si usa l'anteprima del sito collegato.
+// Il segnalibro diventa un callout col colore finto "appstore"
+// (classe notion-appstore_co) e i dati in format.app_row: NotionPage.tsx ci
+// disegna dentro la riga.
+const appIcons = ['🛍️', '🛍']
+
+function markAppRows(recordMap: ExtendedRecordMap) {
+  const valueOf = (id: string): any => getBlockValue(recordMap.block[id])
+
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (block?.type !== 'bookmark') continue
+
+    const caption = getTextContent(block.properties?.caption).trim()
+    const icon = appIcons.find((i) => caption.startsWith(i))
+    if (!icon) continue
+
+    const [name, subtitle, button, note] = caption
+      .slice(icon.length)
+      .split('|')
+      .map((part) => part.trim())
+    const link: string | undefined = block.properties?.link?.[0]?.[0]
+    if (!link) continue
+
+    // l'immagine subito sopra il segnalibro è l'icona dell'app
+    const parent = valueOf(block.parent_id)
+    const siblings: string[] = parent?.content ?? []
+    const at = siblings.indexOf(block.id)
+    const prevId = at > 0 ? siblings[at - 1] : undefined
+    const prev = prevId ? valueOf(prevId) : undefined
+    const iconBlockId = prev?.type === 'image' ? prev.id : undefined
+    if (iconBlockId && parent) {
+      parent.content = siblings.filter((id) => id !== iconBlockId)
+    }
+
+    block.format = {
+      ...block.format,
+      block_color: 'appstore',
+      app_row: {
+        title: name || getTextContent(block.properties?.title).trim() || link,
+        subtitle:
+          subtitle ||
+          getTextContent(block.properties?.description).trim() ||
+          undefined,
+        button: button || 'Ottieni',
+        note: note || undefined,
+        link,
+        iconBlockId,
+        cover: block.format?.bookmark_cover
+      }
+    }
+    block.type = 'callout'
+    block.properties = {}
+    block.content = []
   }
 }
 

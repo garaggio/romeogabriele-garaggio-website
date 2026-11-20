@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Guida Notion · Aggiornamento 2</title>
+<!-- Seconda pagina di aggiornamento della guida "Come scrivere su Notion".
+     Si stampa in PDF con Chrome e si aggiunge in fondo alla guida. -->
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 17mm 20mm;
+      }
+      :root {
+        --blue: #0a1a9e;
+        --yellow: #ffd83a;
+        --red: #b3121c;
+        --ink: #17181c;
+        --muted: #5b5e69;
+        --line: #dfe1e8;
+        --soft: #f4f5f9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body {
+        margin: 0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        font-size: 10.5pt;
+        line-height: 1.5;
+      }
+      h2 {
+        font-size: 17pt;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin: 0 0 3mm;
+        padding-top: 2mm;
+        color: var(--blue);
+        break-after: avoid;
+      }
+      h2 .n {
+        display: inline-block;
+        min-width: 9mm;
+        color: var(--ink);
+        background: var(--yellow);
+        text-align: center;
+        border-radius: 2mm;
+        margin-right: 3mm;
+        font-size: 12pt;
+        padding: 0.6mm 1.5mm;
+        vertical-align: 2pt;
+      }
+      h3 {
+        font-size: 11.5pt;
+        margin: 5mm 0 1.5mm;
+        break-after: avoid;
+        color: var(--ink);
+      }
+      p {
+        margin: 0 0 2.5mm;
+      }
+      section {
+        margin-bottom: 7mm;
+      }
+      ul {
+        margin: 0 0 3mm;
+        padding-left: 5mm;
+      }
+      li {
+        margin-bottom: 1mm;
+      }
+      .k {
+        font-family: Menlo, monospace;
+        font-size: 9pt;
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 1.2mm;
+        padding: 0.2mm 1.3mm;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .tip {
+        border-left: 1.2mm solid var(--yellow);
+        background: #fffbea;
+        padding: 2.5mm 4mm;
+        border-radius: 0 2mm 2mm 0;
+        margin: 3mm 0;
+        break-inside: avoid;
+      }
+      .tip b:first-child {
+        display: block;
+        font-size: 8pt;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 0.5mm;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9.5pt;
+        margin: 2mm 0 4mm;
+      }
+      th {
+        text-align: left;
+        font-size: 7.5pt;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1.5px solid var(--ink);
+        padding: 1.5mm 2mm;
+      }
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 2mm;
+        vertical-align: top;
+      }
+      tr {
+        break-inside: avoid;
+      }
+      td:first-child {
+        font-weight: 700;
+        width: 34%;
+      }
+      .where {
+        display: block;
+        margin-top: 0.8mm;
+        font-size: 8.5pt;
+        color: var(--muted);
+      }
+      .app { display: grid; grid-template-columns: 14mm 1fr auto; gap: 4mm; align-items: center; padding: 3mm 4mm; border-radius: 3mm; background: #0d1670; color: #fff; margin: 2mm 0 1mm; break-inside: avoid; }
+  .app .ic { width: 14mm; height: 14mm; border-radius: 22.5%; background: #fff; display: grid; place-items: center; color: #1428c8; font-weight: 800; font-size: 13pt; }
+  .app b { display: block; font-size: 11pt; }
+  .app small { color: rgba(235,235,245,.6); font-size: 9pt; }
+  .app .get { background: #f2f2f7; color: #1428c8; font-weight: 700; border-radius: 99px; padding: 1.5mm 4.5mm; font-size: 9.5pt; text-align: center; }
+  .app .nt { display: block; text-align: center; color: rgba(235,235,245,.55); font-size: 6.5pt; margin-top: 1mm; }
+</style>
+
+</head>
+<body>
+
+<section>
+  <h2><span class="n">19</span>Segnalibri: Anteprima o App Store</h2>
+  <p>Il <b>segnalibro</b> (incolli un link in Notion → <span class="k">Crea segnalibro</span>) ha due aspetti. Li scegli con un segno all'inizio della sua <b>didascalia</b> (passa sul segnalibro → <span class="k">Didascalia</span>).</p>
+  <table>
+    <tr><th>Segno nella didascalia</th><th>Cosa diventa</th></tr>
+    <tr><td>👁️ (o nessun segno)</td><td>La finestra <b>Anteprima</b> del Mac (sezione 12): titolo, indirizzo, immagine e descrizione. Il testo dopo 👁️ diventa la descrizione; il segno non si vede.</td></tr>
+    <tr><td>🛍️</td><td>Una riga dell'<b>App Store</b>, pensata per il merch: icona dell'app, nome, sottotitolo e pulsante a pillola.</td></tr>
+  </table>
+
+  <h3>Riga App Store (🛍️), passo per passo</h3>
+  <ul>
+    <li><b>Il link</b> del segnalibro è dove porta la riga: una pagina del sito (es. <span class="k">garaggio.art/merch</span>, si apre nella stessa scheda) o un sito esterno come Bandcamp o un link di pagamento Stripe (si apre in una scheda nuova).</li>
+    <li><b>La didascalia</b>, con i campi separati da <span class="k">|</span>, tutti facoltativi dopo il segno:<br><span class="k">🛍️ Nome | Sottotitolo | Testo del pulsante | Nota</span><br>es. <span class="k">🛍️ Garaggio 2.5 | Vinile 12" · 2024 | Ottieni | Acquisti in-app</span>. Con solo <span class="k">🛍️</span> nome e sottotitolo vengono dal sito collegato e il pulsante dice «Ottieni».</li>
+    <li><b>L'icona</b>: carica il tuo PNG o SVG come immagine <b>subito sopra</b> il segnalibro, senza righe vuote in mezzo. Diventa l'icona e non compare da sola. Senza immagine si usa l'anteprima del sito collegato.</li>
+    <li><b>File dell'icona:</b> quadrato, almeno 512 × 512 px, PNG scontornato o SVG, con il disegno a filo dei bordi. Dietro c'è sempre una <b>tessera bianca</b>; gli angoli arrotondati li fa il sito.</li>
+  </ul>
+  <div class="app"><span class="ic">G</span><span><b>Garaggio 2.5</b><small>Vinile 12" · 2024</small></span><span><span class="get">Ottieni</span><span class="nt">Acquisti in-app</span></span></div>
+  <p class="muted">Sul sito tutto il riquadro è cliccabile. Il testo del pulsante è blu come il sito e diventa giallo al passaggio del mouse. Più segnalibri 🛍️ uno sotto l'altro formano un elenco.</p>
+</section>
+
+<section style="break-before: page">
+  <h2><span class="n">20</span>Altre novità di questa versione</h2>
+  <ul>
+    <li><b>Carrello nella barra in alto</b> («Merch now!»): porta alla pagina Merch del sito, <span class="k">garaggio.art/merch</span>, e su quella pagina resta acceso in giallo. La pagina in Notion deve restare pubblica e dentro l'albero del sito.</li>
+    <li><b>Icone della barra in alto</b>: casetta piena, carrello e lente ridisegnati nello stesso stile; un unico grigio fisso, anche durante il caricamento.</li>
+    <li><b>Galleria a finestra</b>: ogni gesto laterale sul trackpad (o col dito) sposta di <b>una</b> foto, anche gesti ravvicinati; ferma su prima e ultima foto senza cambiare pagina. Lente e clic per ingrandire su tutta l'area grigia.</li>
+  </ul>
+  <table>
+    <tr><th>Cosa</th><th>Dove e come</th></tr>
+    <tr><td>Grigio delle icone in alto</td><td><span class="k">--g-nav-color: rgba(238, 242, 255, 0.55);</span> l'ultimo numero è l'opacità (più alto = più chiaro).<span class="where">styles/global.css, regola «.notion-nav-header .breadcrumb».</span></td></tr>
+    <tr><td>Pagina del carrello</td><td><span class="k">pageId: '41e0…170c'</span> nella voce «Merch now!» di <span class="k">navigationLinks</span>, e <span class="k">'/merch': '41e0…170c'</span> in <span class="k">pageUrlOverrides</span>. Per un'altra pagina, sostituisci l'ID in entrambi.<span class="where">site.config.ts.</span></td></tr>
+    <tr><td>Sensibilità del gesto (galleria)</td><td><span class="k">const threshold = 24</span> spinta in pixel per passare alla foto successiva: più basso = più reattivo.<span class="where">components/Scrapbook.tsx.</span></td></tr>
+    <tr><td>Grandezza icona App Store</td><td><span class="k">--app-icon: 64px;</span> (54px su telefono).<span class="where">components/AppRow.module.css, blocco «.row».</span></td></tr>
+    <tr><td>Colori del pulsante App Store</td><td>Testo: <span class="k">color: var(--g-blue, #1428c8);</span> fondo: <span class="k">background: #f2f2f7;</span> nel blocco <span class="k">.get</span>; al passaggio del mouse giallo del sito.<span class="where">components/AppRow.module.css.</span></td></tr>
+  </table>
+</section>
+
+</body>
+</html>

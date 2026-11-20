@@ -1,5 +1,6 @@
 import type * as types from 'notion-types'
 import cs from 'classnames'
+import { uuidToId } from 'notion-utils'
 import { Header, useNotionContext } from 'react-notion-x'
 
 import {
@@ -62,11 +63,20 @@ export function NotionPageHeader({
               )
 
               if (link.pageId) {
+                // pagina corrente: l'icona resta accesa ("sei qui")
+                const isCurrent = uuidToId(block.id) === uuidToId(link.pageId)
                 return (
                   <components.PageLink
                     href={mapPageUrl(link.pageId)}
                     key={index}
-                    className={cs(styles.navLink, 'breadcrumb', 'button')}
+                    className={cs(
+                      styles.navLink,
+                      'breadcrumb',
+                      'button',
+                      isCurrent && 'g-nav-current'
+                    )}
+                    title={link.title}
+                    aria-current={isCurrent ? 'page' : undefined}
                   >
                     {content}
                   </components.PageLink>

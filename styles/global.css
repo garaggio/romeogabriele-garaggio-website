@@ -143,9 +143,18 @@ body .notion-app {
 }
 
 .notion-nav-header .breadcrumb {
+  /* colore fisso delle icone in alto, uguale in tema chiaro e scuro: il tema
+     scuro di react-notion-x porterebbe --fg-color-3 al bianco pieno appena
+     la pagina finisce di caricarsi */
+  --g-nav-color: rgba(
+    238,
+    242,
+    255,
+    0.55
+  ); /* grigio: ultimo numero = opacità */
   font-family: var(--notion-font);
   font-size: 0.85rem;
-  color: var(--fg-color-3);
+  color: var(--g-nav-color);
 }
 
 .notion-nav-header .breadcrumb.active {
@@ -178,6 +187,11 @@ body .notion-app {
   -webkit-mask-size: contain;
   mask-size: contain;
   transition: color 0.15s;
+}
+
+/* sulla pagina a cui porta (es. il carrello su /merch) l'icona resta accesa */
+.notion-nav-header .breadcrumb.button.g-nav-current .g-nav-icon {
+  color: var(--g-yellow);
 }
 
 /* al passaggio nessun riquadro: si accende solo l'icona */
@@ -624,6 +638,14 @@ details.notion-toggle > div {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+/* su computer i loghi in fila stanno 1 px più in alto del centro esatto:
+   la casetta si allinea a loro */
+@media (min-width: 641px) {
+  .notion-nav-header .g-home {
+    top: calc(50% - 1px);
+  }
 }
 
 .notion-nav-header .g-home:hover .g-nav-icon,
@@ -1839,7 +1861,7 @@ html {
 
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co) {
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co) {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
@@ -1866,7 +1888,7 @@ html {
 /* l'icona sta in un riquadro come un'app nel Dock, con il bordo giallo */
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
   > .notion-page-icon-inline {
   display: grid;
   place-items: center;
@@ -1882,7 +1904,7 @@ html {
 
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
   > .notion-callout-text {
   grid-column: 2;
   margin-left: 0;
@@ -1891,7 +1913,7 @@ html {
 /* niente spazio in più in alto e in fondo: margini uguali */
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
   > .notion-callout-text
   > :first-child {
   margin-top: 0;
@@ -1900,7 +1922,7 @@ html {
 
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
   > .notion-callout-text
   > :last-child {
   margin-bottom: 0;
@@ -1910,7 +1932,9 @@ html {
 /* callout senza icona: il testo usa tutta la larghezza */
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co):not(:has(> .notion-page-icon-inline))
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+    :has(> .notion-page-icon-inline)
+  )
   > .notion-callout-text {
   grid-column: 1 / -1;
 }
@@ -1918,7 +1942,7 @@ html {
 /* l'emoji al centro del riquadro, un po' più grande del testo */
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
   > .notion-page-icon-inline
   .notion-page-icon {
   width: auto;
@@ -1932,7 +1956,7 @@ html {
 /* pulsanti nella finestra: gialli, il rosso del sito al passaggio */
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
   .notion-button {
   min-height: 0;
   margin-top: 0.35em;
@@ -1949,7 +1973,7 @@ html {
 
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
   .notion-button:hover {
   background: var(--g-red);
   color: #fff;
@@ -1958,7 +1982,7 @@ html {
 @media (max-width: 640px) {
   .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
       .notion-contextmenu_co
-    ):not(.notion-scrapbook_co) {
+    ):not(.notion-scrapbook_co):not(.notion-appstore_co) {
     padding: 0.85em var(--g-box-pad-x);
     column-gap: 0.65em;
   }
@@ -2147,8 +2171,7 @@ html {
 }
 
 .notion-app img {
-  -webkit-user-drag: none;
-  user-drag: none;
+  -webkit-user-drag: none; /* Safari e Chrome; altrove ci pensa il codice */
 }
 
 .notion-app input,
@@ -2635,4 +2658,32 @@ html {
     white-space: normal;
     overflow-wrap: anywhere;
   }
+}
+
+/* ==========================================================
+   Merch in stile App Store (segnalibro 🛍️ → components/AppRow.tsx)
+   Il callout è solo un contenitore: niente aspetto di avviso.
+   ========================================================== */
+
+.notion-callout.notion-appstore_co {
+  display: block;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none !important;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.notion-appstore_co > .notion-page-icon-inline,
+.notion-appstore_co > .notion-callout-text {
+  display: none;
+}
+
+.g-app-mount {
+  width: 100%;
 }

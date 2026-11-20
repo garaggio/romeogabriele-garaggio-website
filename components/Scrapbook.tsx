@@ -106,26 +106,52 @@ export function Scrapbook({
     const stage = stageRef.current
     if (!stage || count < 2) return
 
+    // Trackpad: ogni gesto laterale = una sola foto, avanti o indietro.
+    // Dopo il passo la galleria ignora la coda d'inerzia del gesto (su Mac
+    // continua per quasi un secondo) e riconosce un gesto NUOVO quando:
+    // - gli eventi si fermano per un attimo, oppure
+    // - la spinta torna a crescere (l'inerzia può solo calare), oppure
+    // - cambia la direzione.
+    // Lo scorrimento laterale è sempre trattenuto dalla galleria: anche sulla
+    // prima e sull'ultima foto Safari e Chrome non cambiano pagina.
+    const threshold = 24 // px di spinta per far partire il passo
+    const pause = 140 // ms senza eventi = gesto finito
     let acc = 0
     let locked = false
-    let timer: ReturnType<typeof setTimeout> | undefined
-
+    let lockedDir = 0
+    let lastAbs = 0
+    let lastTime = 0
+    let stepTime = 0
     const onWheel = (event: WheelEvent) => {
       if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return
-      // niente "pagina precedente" del browser con lo scorrimento laterale
       event.preventDefault()
-      // il gesto (con la sua inerzia) finisce quando gli eventi si fermano
-      clearTimeout(timer)
-      timer = setTimeout(() => {
-        acc = 0
-        locked = false
-      }, 200)
+      const dx = event.deltaMode === 1 ? event.deltaX * 16 : event.deltaX
+      const abs = Math.abs(dx)
+      const dir = Math.sign(dx)
+      const now = event.timeStamp
+
+      if (locked) {
+        const newGesture =
+          now - lastTime > pause ||
+          dir !== lockedDir ||
+          (now - stepTime > 180 && abs > 6 && abs > lastAbs * 1.5)
+        if (newGesture) {
+          locked = false
+          acc = 0
+        }
+      }
+      lastAbs = abs
+      lastTime = now
       if (locked) return
-      acc += event.deltaX
-      if (Math.abs(acc) > 40) {
+
+      if (acc !== 0 && Math.sign(acc) !== dir) acc = 0
+      acc += dx
+      if (Math.abs(acc) >= threshold) {
         const d = acc > 0 ? 1 : -1
         go((from) => from + d)
         locked = true
+        lockedDir = d
+        stepTime = now
         acc = 0
       }
     }
@@ -155,12 +181,13 @@ export function Scrapbook({
       }
     }
 
-    stage.addEventListener('wheel', onWheel, { passive: false })
+    // la rotellina/trackpad su tutta la finestra (foto, dati e barra)
+    const win = stage.closest('section') ?? stage
+    win.addEventListener('wheel', onWheel as EventListener, { passive: false })
     stage.addEventListener('touchstart', onTouchStart, { passive: true })
     stage.addEventListener('touchend', onTouchEnd, { passive: true })
     return () => {
-      clearTimeout(timer)
-      stage.removeEventListener('wheel', onWheel)
+      win.removeEventListener('wheel', onWheel as EventListener)
       stage.removeEventListener('touchstart', onTouchStart)
       stage.removeEventListener('touchend', onTouchEnd)
     }
@@ -393,6 +420,15 @@ export function Scrapbook({
           className={styles.stage}
           id={`${id}-stage`}
           ref={stageRef}
+          data-zoomable={zoomable || onInspect ? '' : undefined}
+          // clic in qualsiasi punto dell'area grigia (anche ai lati della
+          // foto): ingrandimento. Il pulsante interno resta per la tastiera:
+          // Invio sul pulsante arriva qui come clic.
+          onClick={() => {
+            if (swiped.current || !(zoomable || onInspect)) return
+            if (zoomable) openZoom()
+            onInspect?.(item, current)
+          }}
           onPointerEnter={(event) => {
             if (event.pointerType === 'mouse') hovering.current = true
           }}
@@ -404,11 +440,6 @@ export function Scrapbook({
             <button
               type='button'
               className={styles.inspect}
-              onClick={() => {
-                if (swiped.current) return
-                if (zoomable) openZoom()
-                onInspect?.(item, current)
-              }}
               aria-label={`Ingrandisci ${item.title}`}
             >
               <img

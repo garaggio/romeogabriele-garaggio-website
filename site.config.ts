@@ -39,7 +39,10 @@ export default siteConfig({
   //   '/foo': '067dd719a912471ea9a3ac10710e7fdf',
   //   '/bar': '0be6efce9daf42688f65c76b89f8eb27'
   // }
-  pageUrlOverrides: null,
+  pageUrlOverrides: {
+    // pagina del merch: garaggio.art/merch invece del codice lungo
+    '/merch': '41e0e9fb28fd8074a18eee634cea170c'
+  },
 
   // whether to use the default notion navigation style or a custom one with links to
   // important pages. To use `navigationLinks`, set `navigationStyle` to `custom`.
@@ -63,14 +66,16 @@ export default siteConfig({
       icon: '/icons/spotify.svg'
     },
     {
-      title: 'Bandcamp',
-      url: 'https://studiogaraggio.bandcamp.com/',
-      icon: '/icons/bandcamp.svg'
-    },
-    {
       title: 'GitHub',
       url: 'https://github.com/garaggio',
       icon: '/icons/github.svg'
+    },
+    {
+      // il merch: porta alla pagina "Merch now!" del sito (garaggio.art/merch);
+      // sulla pagina stessa il carrello resta acceso in giallo
+      title: 'Merch now!',
+      pageId: '41e0e9fb28fd8074a18eee634cea170c',
+      icon: '/icons/merch.svg'
     }
   ]
 })

@@ -106,6 +106,10 @@ export async function getPage(pageId: string): Promise<ExtendedRecordMap> {
 
   markAppRows(recordMap)
 
+  markLockScreens(recordMap)
+
+  hideSecretCallouts(recordMap)
+
   applyBookmarkCaptions(recordMap)
 
   markPhotoGalleries(recordMap)
@@ -139,11 +143,14 @@ async function resolveCustomEmojis(recordMap: ExtendedRecordMap) {
       iconBlocks.push(block)
     }
 
-    // icone personalizzate dentro il testo: ["ce", "<id>"]
+    // icone personalizzate dentro il testo. Notion le scrive come
+    // ["ce", "<id>"] oppure, oggi, ["ce", "<id>", "<spazio>"]: accettiamo
+    // entrambe le forme, così funziona qualsiasi emoji del workspace
     for (const m of JSON.stringify(block.properties ?? {}).matchAll(
-      /\["ce","([\w-]+)"\]/g
+      /\["ce","([\w-]+)"(?:,"([\w-]+)")?\]/g
     )) {
-      if (block.space_id) emojis.set(m[1]!, block.space_id)
+      const spaceId = m[2] ?? block.space_id
+      if (spaceId) emojis.set(m[1]!, spaceId)
     }
   }
 
@@ -557,6 +564,186 @@ function markAppRows(recordMap: ExtendedRecordMap) {
     block.type = 'callout'
     block.properties = {}
     block.content = []
+  }
+}
+
+// Schermata di blocco di iPhone (components/LockScreen.tsx), per esempio per
+// la sezione "Next event" della home. In Notion: un callout con icona 🔒
+// (o prima riga che inizia con 🔒). Dentro:
+//   - prima riga:  🔒 Scritta piccola | Testo grande   (es. "🔒 Next event | 12 dic")
+//     (al posto della data e dell'ora dell'iPhone)
+//   - una foto: lo sfondo della schermata di blocco (facoltativa)
+//   - una riga che inizia con "//" (o un titolo di Notion) è un divisorio
+//     con una scritta grande stile "Centro notifiche", es. "// Tour passati"
+//   - ogni altra riga di testo è una notifica:
+//       🎸 Titolo | quando | testo
+//     l'emoji iniziale è l'icona dell'app; un link o una pagina menzionata
+//     nella riga rende la notifica cliccabile.
+// Con 🔔 al posto di 🔒 le stesse notifiche stanno in un riquadro generico in
+// stile macOS (niente iPhone): stessa scrittura, aspetto diverso.
+// Il callout prende il colore finto "lockscreen" e i dati in format.lock_screen.
+const macIcons = ['🔔']
+const lockIcons = ['🔒', '🔐', ...macIcons]
+const leadingEmoji =
+  /^(\p{Extended_Pictographic}️?(‍\p{Extended_Pictographic}️?)*)\s*/u
+
+// primo link della riga: indirizzo esterno ("a") o pagina menzionata ("p")
+const firstLink = (title: any[] | undefined) => {
+  for (const segment of title ?? []) {
+    for (const decoration of segment?.[1] ?? []) {
+      if (decoration?.[0] === 'a' && decoration[1]) {
+        return { url: String(decoration[1]) }
+      }
+      if (decoration?.[0] === 'p' && decoration[1]) {
+        return { pageId: String(decoration[1]) }
+      }
+    }
+  }
+  return undefined
+}
+
+function markLockScreens(recordMap: ExtendedRecordMap) {
+  const valueOf = (id: string): any => getBlockValue(recordMap.block[id])
+  // emoji personalizzate del workspace (già risolte da resolveCustomEmojis)
+  const customEmojis: Record<string, string> =
+    (recordMap as any).custom_emojis ?? {}
+  // emoji personalizzata all'inizio della riga: ["‣", [["ce", id, spazio]]]
+  const leadingCustomEmoji = (rich?: any[]) => {
+    const first = rich?.[0]
+    const ce = (first?.[1] ?? []).find((d: any) => d?.[0] === 'ce')
+    return ce ? customEmojis[ce[1]] : undefined
+  }
+
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (block?.type !== 'callout') continue
+
+    const content: string[] = block.content ?? []
+    const first = content[0] ? valueOf(content[0]) : undefined
+    const ownTitle = getTextContent(block.properties?.title).trim()
+    const firstLine =
+      first?.type === 'text'
+        ? getTextContent(first.properties?.title).trim()
+        : ''
+    const fromIcon = lockIcons.includes(block.format?.page_icon)
+    const headerSource = [ownTitle, firstLine].find((t) =>
+      lockIcons.some((i) => t.startsWith(i))
+    )
+    if (!fromIcon && headerSource === undefined) continue
+
+    const icon = lockIcons.find((i) => headerSource?.startsWith(i)) ?? ''
+    const [label, big] = (headerSource ?? '')
+      .slice(icon.length)
+      .split('|')
+      .map((part) => part.trim())
+
+    let wallpaperBlockId: string | undefined
+    const notifications: any[] = []
+    content.forEach((id, i) => {
+      const child = valueOf(id)
+      if (!child) return
+      if (child.type === 'image') {
+        wallpaperBlockId ??= child.id
+        return
+      }
+      // una notifica per riga: righe di testo, oppure blocchi di codice
+      // (capita incollando gli esempi: ogni riga del blocco è una notifica)
+      const addNotification = (id: string, raw: string, rich?: any[]) => {
+        const text = raw.replaceAll('‣', '').trim()
+        if (!text) return
+        // divisorio: "// Tour passati"
+        if (text.startsWith('//')) {
+          const title = text.slice(2).trim()
+          if (title) notifications.push({ id, divider: true, title })
+          return
+        }
+        const iconImage = leadingCustomEmoji(rich)
+        const emoji = iconImage ? null : text.match(leadingEmoji)
+        const [title, when, body] = text
+          .slice(emoji ? emoji[0].length : 0)
+          .split('|')
+          .map((part) => part.trim())
+        notifications.push({
+          id,
+          icon: emoji?.[1],
+          iconImage,
+          title: title || '',
+          when: when || undefined,
+          body: body || undefined,
+          link: rich ? firstLink(rich) : undefined
+        })
+      }
+
+      if (child.type === 'code') {
+        getTextContent(child.properties?.title)
+          .split('\n')
+          .forEach((line, n) => addNotification(`${child.id}-${n}`, line))
+        return
+      }
+      // un titolo di Notion dentro il callout fa da divisorio
+      if (['header', 'sub_header', 'sub_sub_header'].includes(child.type)) {
+        const title = getTextContent(child.properties?.title).trim()
+        if (title) notifications.push({ id: child.id, divider: true, title })
+        return
+      }
+      if (child.type !== 'text') return
+      // la riga del segno 🔒 è l'intestazione, non una notifica
+      if (i === 0 && headerSource === firstLine && firstLine) return
+      addNotification(
+        child.id,
+        getTextContent(child.properties?.title),
+        child.properties?.title
+      )
+    })
+
+    const usedIcon = fromIcon ? block.format?.page_icon : icon
+    block.format = {
+      ...block.format,
+      block_color: 'lockscreen',
+      lock_screen: {
+        variant: macIcons.includes(usedIcon) ? 'mac' : 'phone',
+        label: label || 'Next event',
+        big: big || undefined,
+        wallpaperBlockId,
+        notifications
+      }
+    }
+    delete block.format.page_icon
+    if (block.properties) delete block.properties.title
+  }
+}
+
+// Contenitore nascosto: un callout con icona 🙈 (o prima riga che inizia con
+// 🙈) non si vede sul sito, con tutto il suo contenuto. Serve per tenere in
+// Notion sottopagine che non devono comparire tra le cartelle: si aprono solo
+// da un elemento grafico che ci porta (menu 🖱️, riga 🛍️, notifica, link).
+// Togliamo il callout dall'elenco dei blocchi della pagina, ma i suoi blocchi
+// restano nei dati: titoli e indirizzi delle pagine menzionate funzionano.
+const secretIcons = ['🙈']
+
+function hideSecretCallouts(recordMap: ExtendedRecordMap) {
+  const valueOf = (id: string): any => getBlockValue(recordMap.block[id])
+
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (block?.type !== 'callout') continue
+
+    const first = block.content?.[0] ? valueOf(block.content[0]) : undefined
+    const lines = [
+      getTextContent(block.properties?.title).trim(),
+      first?.type === 'text'
+        ? getTextContent(first.properties?.title).trim()
+        : ''
+    ]
+    const secret =
+      secretIcons.includes(block.format?.page_icon) ||
+      lines.some((line) => secretIcons.some((i) => line.startsWith(i)))
+    if (!secret) continue
+
+    const parent = valueOf(block.parent_id)
+    if (parent?.content) {
+      parent.content = parent.content.filter((id: string) => id !== block.id)
+    }
   }
 }
 

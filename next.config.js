@@ -1,5 +1,26 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const projectDir = path.dirname(fileURLToPath(import.meta.url))
+
 export default {
   staticPageGenerationTimeout: 300,
+  // react-notion-x usa "react-image" per le emoji personalizzate nel testo:
+  // lo sostituiamo con un'immagine semplice (lib/react-image.tsx), perché
+  // l'originale fa comparire l'errore "Can't perform a React state update on
+  // a component that hasn't mounted yet". Vale per Turbopack e per Webpack.
+  turbopack: {
+    resolveAlias: {
+      'react-image': './lib/react-image.tsx'
+    }
+  },
+  webpack(config) {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-image': path.join(projectDir, 'lib/react-image.tsx')
+    }
+    return config
+  },
   experimental: {
     agentUpgrade: 'security'
   },

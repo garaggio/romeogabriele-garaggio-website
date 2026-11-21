@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Guida Notion · Aggiornamento 3</title>
+<!-- Terza pagina di aggiornamento della guida "Come scrivere su Notion".
+     Si stampa in PDF con Chrome e si aggiunge in fondo alla guida. -->
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 17mm 20mm;
+      }
+      :root {
+        --blue: #0a1a9e;
+        --yellow: #ffd83a;
+        --red: #b3121c;
+        --ink: #17181c;
+        --muted: #5b5e69;
+        --line: #dfe1e8;
+        --soft: #f4f5f9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body {
+        margin: 0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        font-size: 10.5pt;
+        line-height: 1.5;
+      }
+      h2 {
+        font-size: 17pt;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin: 0 0 3mm;
+        padding-top: 2mm;
+        color: var(--blue);
+        break-after: avoid;
+      }
+      h2 .n {
+        display: inline-block;
+        min-width: 9mm;
+        color: var(--ink);
+        background: var(--yellow);
+        text-align: center;
+        border-radius: 2mm;
+        margin-right: 3mm;
+        font-size: 12pt;
+        padding: 0.6mm 1.5mm;
+        vertical-align: 2pt;
+      }
+      h3 {
+        font-size: 11.5pt;
+        margin: 5mm 0 1.5mm;
+        break-after: avoid;
+        color: var(--ink);
+      }
+      p {
+        margin: 0 0 2.5mm;
+      }
+      section {
+        margin-bottom: 7mm;
+      }
+      ul {
+        margin: 0 0 3mm;
+        padding-left: 5mm;
+      }
+      li {
+        margin-bottom: 1mm;
+      }
+      .k {
+        font-family: Menlo, monospace;
+        font-size: 9pt;
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 1.2mm;
+        padding: 0.2mm 1.3mm;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .tip {
+        border-left: 1.2mm solid var(--yellow);
+        background: #fffbea;
+        padding: 2.5mm 4mm;
+        border-radius: 0 2mm 2mm 0;
+        margin: 3mm 0;
+        break-inside: avoid;
+      }
+      .tip b:first-child {
+        display: block;
+        font-size: 8pt;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 0.5mm;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9.5pt;
+        margin: 2mm 0 4mm;
+      }
+      th {
+        text-align: left;
+        font-size: 7.5pt;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1.5px solid var(--ink);
+        padding: 1.5mm 2mm;
+      }
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 2mm;
+        vertical-align: top;
+      }
+      tr {
+        break-inside: avoid;
+      }
+      td:first-child {
+        font-weight: 700;
+        width: 34%;
+      }
+      .where {
+        display: block;
+        margin-top: 0.8mm;
+        font-size: 8.5pt;
+        color: var(--muted);
+      }
+      .app { display: grid; grid-template-columns: 14mm 1fr auto; gap: 4mm; align-items: center; padding: 3mm 4mm; border-radius: 3mm; background: #0d1670; color: #fff; margin: 2mm 0 1mm; break-inside: avoid; }
+  .app .ic { width: 14mm; height: 14mm; border-radius: 22.5%; background: #fff; display: grid; place-items: center; color: #1428c8; font-weight: 800; font-size: 13pt; }
+  .app b { display: block; font-size: 11pt; }
+  .app small { color: rgba(235,235,245,.6); font-size: 9pt; }
+  .app .get { background: #f2f2f7; color: #1428c8; font-weight: 700; border-radius: 99px; padding: 1.5mm 4.5mm; font-size: 9.5pt; text-align: center; }
+  .app .nt { display: block; text-align: center; color: rgba(235,235,245,.55); font-size: 6.5pt; margin-top: 1mm; }
+  .phone { width: 52mm; aspect-ratio: 9 / 18.5; border-radius: 9mm; padding: 0 3mm; margin: 0 auto; background: radial-gradient(120% 70% at 20% 10%, #6cbcec, transparent 55%), radial-gradient(120% 80% at 90% 85%, #ffd83a, transparent 45%), linear-gradient(160deg, #1428c8, #050d5c); box-shadow: 0 0 0 1.6mm #0b0b0f; color: #fff; text-align: center; display: flex; flex-direction: column; position: relative; }
+  .phone .isl { position: absolute; top: 2mm; left: 50%; width: 15mm; height: 4.5mm; margin-left: -7.5mm; background: #000; border-radius: 9mm; }
+  .phone .lb { margin-top: 11mm; font-size: 8pt; font-weight: 600; }
+  .phone .bg { font-size: 24pt; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+  .phone .nt { margin-top: auto; display: grid; grid-template-columns: 6mm 1fr; gap: 2mm; align-items: center; text-align: left; background: rgba(28,28,32,.5); border-radius: 3.5mm; padding: 2mm; font-size: 6pt; }
+  .phone .nt + .nt { margin-top: 1.5mm; }
+  .phone .ic { width: 6mm; height: 6mm; border-radius: 1.4mm; background: #fff; display: grid; place-items: center; font-size: 9pt; }
+  .phone .hb { width: 16mm; height: .9mm; border-radius: 1mm; background: #fff; margin: 6mm auto 2mm; }
+  .cols { display: grid; grid-template-columns: 1fr 48mm; gap: 6mm; align-items: start; }
+  .warn { border-left: 1.2mm solid #b3121c; background: #fdf0f0; padding: 2.5mm 4mm; border-radius: 0 2mm 2mm 0; margin: 3mm 0; break-inside: avoid; }
+  .warn b:first-child { display: block; font-size: 8pt; letter-spacing: .18em; text-transform: uppercase; margin-bottom: .5mm; }
+  .mk { display: inline-block; background: #1b1b1d; border-radius: 1mm; padding: 0 .6mm; line-height: 1.25; }
+  .render { width: 46mm; border-radius: 3mm; justify-self: end; }
+  .page-break { break-before: page; }
+</style>
+
+</head>
+<body>
+
+<section>
+  <h2><span class="n">21</span>Notifiche (🔔), anche come iPhone (🔒)</h2>
+  <p>Un riquadro con un titolo e un elenco di <b>notifiche</b> in stile Apple, pensato per il <b>prossimo evento</b> o per l'elenco dei tour. Si scrive sempre allo stesso modo; il segno della prima riga sceglie l'aspetto: <b>🔔 riquadro generico</b> (consigliato) oppure <b>🔒 schermata di blocco iPhone</b>.</p>
+
+  <div class="cols">
+  <div>
+  <h3>Come si scrive in Notion (vale per entrambe)</h3>
+  <ol>
+    <li>Crea un <span class="k">/callout</span>.</li>
+    <li>Prima riga: <span class="k">🔔 Next event | Tour List</span> — prima della <span class="k">|</span> la scritta piccola, dopo il titolo grande. (Oppure metti 🔔 come icona del callout e scrivi la riga senza segno.)</li>
+    <li>Facoltativo: trascina <b>una foto</b> dentro il callout: diventa lo sfondo (meglio verticale).</li>
+    <li>Ogni riga successiva è una <b>notifica</b>: <span class="k">🎸 Titolo | quando | testo</span>. L'emoji iniziale è l'icona: va bene anche un'<b>emoji personalizzata</b> del workspace. «quando» e «testo» sono facoltativi.</li>
+    <li>Notifica cliccabile: metti nella riga un <b>link</b> o la <b>menzione di una pagina</b> (<span class="k">@</span>).</li>
+    <li><b>Divisorio</b>: una riga <span class="k">// Tour passati</span> (o un titolo di Notion) diventa una scritta grande e sottile come «Centro notifiche»; sotto metti, per esempio, i tour già fatti.</li>
+  </ol>
+  </div>
+  <img class="render" src="img/notifiche-mac.png" alt="Riquadro notifiche 🔔">
+  </div>
+  <p class="muted">Righe vuote ignorate; le righe di un blocco di codice valgono come notifiche (senza link). Con tante notifiche l'elenco scorre in su e in giù su tutta l'area (trackpad o dito), fermandosi su ogni notifica, con il bordo sfumato da cui continuano; arrivati in cima o in fondo si prosegue con la pagina.</p>
+</section>
+
+<section>
+  <h2><span class="n">21a</span>Opzione principale: riquadro generico (🔔)</h2>
+  <div>
+    <div>
+      <p>Prima riga con <span class="k">🔔</span>. Sul sito è un riquadro del sito:</p>
+      <ul>
+        <li><b>verticale 9:16</b>, largo quanto la pagina o la colonna in cui lo metti;</li>
+        <li>in alto l'etichetta in maiuscoletto («NEXT EVENTS») e il titolo grande;</li>
+        <li>sotto, le notifiche a banner di vetro come su macOS;</li>
+        <li>stessi angoli, <b>alone</b> e <b>filo di vetro</b> delle foto singole: messo in colonna accanto a una foto (anche lei 9:16), i due riquadri sono allineati e identici;</li>
+        <li>la foto del callout fa da sfondo; senza foto, il vetro blu del sito.</li>
+      </ul>
+    </div>
+  </div>
+  <table style="break-inside: avoid">
+    <tr><th>Cosa</th><th>Dove e come</th></tr>
+    <tr><td>Proporzioni</td><td><span class="k">aspect-ratio: 9 / 16;</span> nel blocco <span class="k">.mac</span>.<span class="where">components/LockScreen.module.css.</span></td></tr>
+    <tr><td>Angoli, alone, filo di vetro</td><td>Le variabili delle foto singole (sezione 18): <span class="k">--g-single-radius</span>, <span class="k">--g-single-glow</span>, <span class="k">--g-single-glow-blur</span>, <span class="k">--g-single-edge</span>.</td></tr>
+    <tr><td>Vetro delle notifiche</td><td><span class="k">background: rgba(44, 44, 50, 0.55);</span> nel blocco <span class="k">.mac .notif</span>: l'ultimo numero è l'opacità.</td></tr>
+  </table>
+</section>
+
+<section style="break-inside: avoid">
+  <h2><span class="n">21b</span>Seconda opzione: schermata di blocco iPhone (🔒)</h2>
+  <div class="cols">
+    <div>
+      <p>Stessa scrittura, ma con <span class="k">🔒</span> nella prima riga (es. <span class="k">🔒 Next event | 12 dic</span>). Sul sito diventa uno <b>schermo di iPhone</b> bloccato:</p>
+      <ul>
+        <li>Dynamic Island, lucchetto, scritta piccola al posto della data e testo grande al posto dell'ora;</li>
+        <li>notifiche in vetro smerigliato in basso, poi torcia, fotocamera e barretta;</li>
+        <li>largo al massimo 380 px, centrato; su telefono occupa la larghezza disponibile.</li>
+      </ul>
+      <p class="muted">Per passare da una versione all'altra basta cambiare 🔒 / 🔔 nella prima riga: foto e notifiche restano le stesse.</p>
+    </div>
+    <img class="render" src="img/notifiche-iphone.png" alt="Schermata di blocco iPhone 🔒">
+  </div>
+  <table style="break-inside: avoid">
+    <tr><th>Cosa</th><th>Dove e come</th></tr>
+    <tr><td>Larghezza della schermata</td><td><span class="k">--lock-w: min(100%, 380px);</span> nel blocco <span class="k">.phone</span>.<span class="where">components/LockScreen.module.css.</span></td></tr>
+    <tr><td>Proporzioni</td><td><span class="k">aspect-ratio: 9 / 18.5;</span> nel blocco <span class="k">.phone</span> (più basso il secondo numero = schermo più corto).</td></tr>
+    <tr><td>Vetro delle notifiche</td><td><span class="k">background: rgba(28, 28, 32, 0.42);</span> nel blocco <span class="k">.notif</span>.</td></tr>
+  </table>
+</section>
+
+<section style="break-inside: avoid">
+  <h2><span class="n">22</span>Sottopagine nascoste (🙈)</h2>
+  <p>Per avere pagine che <b>non compaiono tra le cartelle</b> ma si aprono da un elemento grafico (una voce del menu <span class="mk">🖱️</span>, una riga 🛍️, una notifica 🔔/🔒, un link nel testo).</p>
+  <ol>
+    <li>In home crea un <span class="k">/callout</span> con icona <b>🙈</b>, oppure con la prima riga che inizia con <span class="k">🙈</span> (es. <span class="k">🙈 Pagine nascoste</span>).</li>
+    <li>Crea le sottopagine <b>dentro</b> il callout (<span class="k">/pagina</span>).</li>
+    <li>Collegale dove vuoi: nel menu <span class="mk">🖱️</span> (database), in una riga 🛍️ (link della pagina), in una notifica (menzione con <span class="k">@</span>).</li>
+  </ol>
+  <p>Sul sito il callout 🙈 e tutto il suo contenuto non si vedono; le pagine invece esistono e si aprono normalmente dal loro collegamento. In Notion restano ordinate dentro il callout.</p>
+  <div class="warn"><b>Nascosta non vuol dire privata</b>La pagina è pubblica come le altre: chi ha l'indirizzo la può aprire, e può comparire nella ricerca del sito e nei motori di ricerca. Per contenuti riservati non pubblicarli nell'albero del sito.</div>
+</section>
+
+<section style="break-inside: avoid">
+  <h2><span class="n">23</span>Linea di separazione nel menu <span class="mk">🖱️</span></h2>
+  <p>Nel database del menu tasto destro aggiungi una riga con titolo <span class="k">---</span> (tre trattini; va bene anche <span class="k">—</span>) e trascinala nel punto dove vuoi la linea, come riordini le altre voci. Sul sito diventa la linea sottile di separazione del menu del Mac: non è cliccabile e non si colora al passaggio del mouse. Puoi metterne quante vuoi.</p>
+</section>
+
+</body>
+</html>

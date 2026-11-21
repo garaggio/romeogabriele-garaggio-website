@@ -25,6 +25,7 @@ import { useSearchParam } from 'react-use'
 import type * as types from '@/lib/types'
 import * as config from '@/lib/config'
 import { getAppRows } from '@/lib/appstore'
+import { getLockScreens } from '@/lib/lockscreen'
 import { mapImageUrl } from '@/lib/map-image-url'
 import { mapPageUrl } from '@/lib/map-page-url'
 import { getScrapbooks } from '@/lib/scrapbook'
@@ -34,6 +35,7 @@ import { Footer } from './Footer'
 import { NotionPageHeader } from './NotionPageHeader'
 import { PageAside } from './PageAside'
 import { AppRow } from './AppRow'
+import { LockScreen } from './LockScreen'
 import { Scrapbook } from './Scrapbook'
 
 // -----------------------------------------------------------------------------
@@ -475,10 +477,26 @@ export function NotionPage({
           )
         }
       }
+      // altezza della didascalia: alone e bordo di vetro si fermano alla foto
+      const measureCaption = () => {
+        const caption = figure.querySelector<HTMLElement>('figcaption')
+        const height =
+          caption && caption.offsetParent
+            ? caption.offsetHeight +
+              Number.parseFloat(getComputedStyle(caption).marginTop || '0')
+            : 0
+        box.style.setProperty('--g-caption-h', `${height}px`)
+      }
       apply()
+      measureCaption()
+      const observer = new ResizeObserver(measureCaption)
+      observer.observe(box)
       // "load" non risale, ma si sente in fase di cattura
       figure.addEventListener('load', apply, true)
-      cleanups.push(() => figure.removeEventListener('load', apply, true))
+      cleanups.push(() => {
+        observer.disconnect()
+        figure.removeEventListener('load', apply, true)
+      })
     }
     return () => {
       for (const cleanup of cleanups) cleanup()
@@ -509,6 +527,24 @@ export function NotionPage({
     void document.fonts?.ready.then(update)
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
+  }, [recordMap])
+
+  // Menu tasto destro: una riga del database con titolo "---" (o "—") è la
+  // linea di separazione del menu. Si sposta in Notion come le altre voci.
+  React.useEffect(() => {
+    const items = document.querySelectorAll<HTMLAnchorElement>(
+      '.notion-contextmenu_co a.notion-list-item'
+    )
+    for (const item of items) {
+      const title = (
+        item.querySelector('.notion-list-item-title')?.textContent ?? ''
+      ).trim()
+      // "---" (tre o più trattini), oppure una o più lineette "—" / "–"
+      if (!/^(-{3,}|[—–]+)$/.test(title)) continue
+      item.dataset.gSeparator = ''
+      item.tabIndex = -1
+      item.setAttribute('aria-hidden', 'true')
+    }
   }, [recordMap])
 
   // Menu contestuale sopra una foto (segno 🖱️, vedi lib/notion.ts).
@@ -662,6 +698,44 @@ export function NotionPage({
     }
   }, [scrapbooks])
 
+  // Schermata di blocco iPhone: i callout 🔒 (vedi lib/notion.ts e
+  // lib/lockscreen.ts) diventano components/LockScreen.tsx, montata nel
+  // callout con un portale come il Raccoglitore.
+  const lockScreens = React.useMemo(
+    () => getLockScreens(recordMap, siteMapPageUrl),
+    [recordMap, siteMapPageUrl]
+  )
+  const [lockMounts, setLockMounts] = React.useState<
+    Array<{
+      key: string
+      node: HTMLElement
+      data: (typeof lockScreens)[number]
+    }>
+  >([])
+
+  React.useEffect(() => {
+    const mounts: Array<{
+      key: string
+      node: HTMLElement
+      data: (typeof lockScreens)[number]
+    }> = []
+    for (const data of lockScreens) {
+      const host = document.querySelector<HTMLElement>(
+        `.notion-lockscreen_co.notion-block-${data.blockId}`
+      )
+      if (!host) continue
+      const node = document.createElement('div')
+      node.className = 'g-lock-mount'
+      host.append(node)
+      mounts.push({ key: data.blockId, node, data })
+    }
+    setLockMounts(mounts)
+    return () => {
+      for (const mount of mounts) mount.node.remove()
+      setLockMounts([])
+    }
+  }, [lockScreens])
+
   // Merch: i segnalibri 🛍️ (vedi lib/notion.ts e lib/appstore.ts) diventano
   // righe in stile App Store (components/AppRow.tsx), con lo stesso sistema
   // del Raccoglitore: un contenitore nel callout riempito con un portale.
@@ -718,6 +792,20 @@ export function NotionPage({
         pageAside={pageAside}
         footer={<Footer />}
       />
+
+      {lockMounts.map(({ key, node, data }) =>
+        createPortal(
+          <LockScreen
+            variant={data.variant}
+            label={data.label}
+            big={data.big}
+            wallpaper={data.wallpaper}
+            notifications={data.notifications}
+          />,
+          node,
+          key
+        )
+      )}
 
       {appMounts.map(({ key, node, data }) =>
         createPortal(

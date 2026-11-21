@@ -351,9 +351,8 @@
 }
 
 /* icona della pagina (quella caricata in Notion: Icona → Carica) sotto la
-   copertina: intera, senza ritaglio a cerchio. L'ombra segue la sagoma
-   dell'immagine (drop-shadow), così un PNG trasparente come la cartella non
-   ha un disco scuro intorno. */
+   copertina: intera, senza ritaglio a cerchio e senza ombra né alone. Si vede
+   solo l'immagine caricata, scontornata com'è. */
 .notion-page-icon-hero.notion-page-icon-image {
   border-radius: 0;
   box-shadow: none;
@@ -363,7 +362,8 @@
 .notion-page-icon-hero.notion-page-icon-image img {
   border-radius: 0;
   object-fit: contain;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
+  filter: none;
+  box-shadow: none;
 }
 
 .notion-header {

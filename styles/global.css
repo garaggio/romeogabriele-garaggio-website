@@ -1861,7 +1861,9 @@ html {
 
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co):not(.notion-appstore_co) {
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+    .notion-lockscreen_co
+  ) {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
@@ -1888,7 +1890,9 @@ html {
 /* l'icona sta in un riquadro come un'app nel Dock, con il bordo giallo */
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+    .notion-lockscreen_co
+  )
   > .notion-page-icon-inline {
   display: grid;
   place-items: center;
@@ -1904,7 +1908,9 @@ html {
 
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+    .notion-lockscreen_co
+  )
   > .notion-callout-text {
   grid-column: 2;
   margin-left: 0;
@@ -1913,7 +1919,9 @@ html {
 /* niente spazio in più in alto e in fondo: margini uguali */
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+    .notion-lockscreen_co
+  )
   > .notion-callout-text
   > :first-child {
   margin-top: 0;
@@ -1922,7 +1930,9 @@ html {
 
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+    .notion-lockscreen_co
+  )
   > .notion-callout-text
   > :last-child {
   margin-bottom: 0;
@@ -1933,8 +1943,8 @@ html {
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
-    :has(> .notion-page-icon-inline)
-  )
+    .notion-lockscreen_co
+  ):not(:has(> .notion-page-icon-inline))
   > .notion-callout-text {
   grid-column: 1 / -1;
 }
@@ -1942,7 +1952,9 @@ html {
 /* l'emoji al centro del riquadro, un po' più grande del testo */
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+    .notion-lockscreen_co
+  )
   > .notion-page-icon-inline
   .notion-page-icon {
   width: auto;
@@ -1956,7 +1968,9 @@ html {
 /* pulsanti nella finestra: gialli, il rosso del sito al passaggio */
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+    .notion-lockscreen_co
+  )
   .notion-button {
   min-height: 0;
   margin-top: 0.35em;
@@ -1973,7 +1987,9 @@ html {
 
 .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
     .notion-contextmenu_co
-  ):not(.notion-scrapbook_co):not(.notion-appstore_co)
+  ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+    .notion-lockscreen_co
+  )
   .notion-button:hover {
   background: var(--g-red);
   color: #fff;
@@ -1982,7 +1998,9 @@ html {
 @media (max-width: 640px) {
   .notion-callout:not(.notion-gallery_co):not(.notion-yellow_background_co):not(
       .notion-contextmenu_co
-    ):not(.notion-scrapbook_co):not(.notion-appstore_co) {
+    ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
+      .notion-lockscreen_co
+    ) {
     padding: 0.85em var(--g-box-pad-x);
     column-gap: 0.65em;
   }
@@ -2246,8 +2264,8 @@ html {
 
 /* ==========================================================
    Foto singole (fuori da gallerie e galleria a finestra):
-   formato quadrato uguale per tutte, come le immagini dei link incorporati,
-   ritagliato al centro, angoli arrotondati come i riquadri del sito.
+   come le imposti in Notion, proporzioni originali e larghezza scelta in
+   Notion (nessun ritaglio), con gli angoli arrotondati dei riquadri del sito.
    Al posto dell'ombra, l'effetto "vetro" del Mac:
    - alone: dietro la foto una sua copia molto sfocata lascia sul blu un
      bagliore con i colori della foto stessa (l'indirizzo della foto lo passa
@@ -2257,10 +2275,9 @@ html {
    ========================================================== */
 
 .notion-page {
-  --g-single-ratio: 1 / 1; /* formato: 1 / 1 quadrato, 4 / 5, 16 / 9… */
   --g-single-radius: 14px; /* angoli: come callout e finestre */
   --g-single-glow: 0.55; /* intensità dell'alone: 0 = spento, 1 = pieno */
-  --g-single-glow-blur: 30px; /* morbidezza dell'alone */
+  --g-single-glow-blur: 24px; /* morbidezza dell'alone */
   --g-single-edge: rgba(255, 255, 255, 0.22); /* filo di luce sul bordo */
 }
 
@@ -2270,10 +2287,8 @@ html {
   )
   > div {
   position: relative !important;
-  width: 100%;
   height: auto !important;
   padding-bottom: 0 !important;
-  aspect-ratio: var(--g-single-ratio);
   border-radius: var(--g-single-radius);
   /* l'alone sta dietro la foto ma sopra lo sfondo della pagina */
   isolation: isolate;
@@ -2290,13 +2305,28 @@ html {
   position: absolute;
   z-index: -1;
   /* quanto l'alone esce dalla foto: sopra, destra, sotto, sinistra */
-  inset: -1% -1% -3.5% -1%;
+  /* il bordo sotto si ferma alla foto: la didascalia (alta --g-caption-h,
+     misurata da NotionPage.tsx) resta fuori */
+  inset: -1% -1% calc(var(--g-caption-h, 0px) - 3.5%) -1%;
   border-radius: inherit;
   background: var(--g-photo-src, none) center / cover no-repeat;
   filter: blur(var(--g-single-glow-blur)) saturate(1.6);
   opacity: var(--g-single-glow);
   transform: translateZ(0); /* Safari: sfocatura fluida */
   pointer-events: none;
+}
+
+/* foto dentro le colonne di Notion: la riga delle colonne taglia ciò che
+   esce dai suoi bordi, e l'alone sfumato veniva tagliato di netto (sembrava
+   un'ombra squadrata). Qui l'alone può uscire liberamente. */
+.notion-row:has(figure.notion-asset-wrapper-image),
+.notion-row:has(.notion-lockscreen_co) {
+  overflow: visible;
+}
+
+/* didascalie vuote: non occupano spazio sotto la foto */
+.notion-page figure.notion-asset-wrapper-image figcaption:empty {
+  display: none;
 }
 
 /* bordo di vetro: filo di luce e riflesso in alto, sopra la foto */
@@ -2308,7 +2338,7 @@ html {
   content: '';
   position: absolute;
   z-index: 2;
-  inset: 0;
+  inset: 0 0 var(--g-caption-h, 0px);
   border-radius: inherit;
   background: linear-gradient(
     180deg,
@@ -2326,17 +2356,15 @@ html {
     .notion-scrapbook_co *
   )
   img {
-  /* la foto è fissata ai quattro bordi del riquadro quadrato: Safari non
-     calcola height: 100% su un'altezza che nasce da aspect-ratio */
-  position: absolute !important;
+  /* la foto nelle sue proporzioni, larga quanto il riquadro scelto in Notion */
+  position: relative !important;
   z-index: 1;
-  inset: 0;
+  display: block;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
   max-width: none;
   max-height: none;
-  object-fit: cover !important;
-  object-position: center;
+  object-fit: contain !important;
   border-radius: inherit;
 }
 
@@ -2686,4 +2714,81 @@ html {
 
 .g-app-mount {
   width: 100%;
+}
+
+/* ==========================================================
+   Schermata di blocco iPhone (callout 🔒 → components/LockScreen.tsx)
+   Il callout è solo un contenitore; il contenuto originale (foto e righe
+   delle notifiche) si nasconde quando la schermata è pronta.
+   ========================================================== */
+
+.notion-callout.notion-lockscreen_co {
+  display: block;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none !important;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.notion-lockscreen_co > .notion-page-icon-inline,
+.notion-lockscreen_co:has(> .g-lock-mount section) > .notion-callout-text {
+  display: none;
+}
+
+.g-lock-mount {
+  width: 100%;
+}
+
+/* ==========================================================
+   Colonne di Notion: il primo elemento di ogni colonna parte dal bordo
+   superiore della colonna, senza margine proprio. Così due elementi
+   affiancati (es. una foto e il riquadro 🔔) sono allineati in alto anche
+   se di tipo diverso, con margini diversi.
+   ========================================================== */
+
+.notion-column > :first-child,
+.notion-column > :first-child > .notion-callout-text > :first-child,
+.notion-column > .notion-lockscreen_co:first-child .g-lock-mount > section {
+  margin-top: 0 !important;
+}
+
+/* ==========================================================
+   Menu tasto destro: linea di separazione
+   In Notion è una riga del database con titolo "---" (o "—"): la metti tu
+   tra le voci dove vuoi. Qui diventa la linea sottile del menu del Mac.
+   ========================================================== */
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  a.notion-list-item[data-g-separator] {
+  display: block;
+  align-self: stretch;
+  /* larghezza = spazio disponibile meno i margini: stesso rientro a
+     sinistra e a destra; come su macOS parte un filo prima del testo */
+  width: auto;
+  max-width: none;
+  min-height: 0;
+  height: 1px;
+  margin: calc(5px * var(--menu-k)) calc(8px * var(--menu-k));
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0;
+  background: var(--menu-line);
+  color: transparent;
+  font-size: 0;
+  cursor: default;
+  pointer-events: none;
+}
+
+.notion-contextmenu_co
+  .notion-collection:has(.notion-list-collection)
+  a.notion-list-item[data-g-separator]
+  > * {
+  display: none;
 }

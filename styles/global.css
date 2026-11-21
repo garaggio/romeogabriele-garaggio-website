@@ -318,13 +318,14 @@ details.notion-toggle > summary::before {
 
 /* ---------- File della scheda: blocchi toggle ---------- */
 
+/* riga del toggle: solo il testo con la freccia, senza riquadro grigio */
 details.notion-toggle > summary {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.55rem 0.8rem;
-  background: var(--g-panel);
-  border: 1px solid transparent;
+  padding: 0.3rem 0;
+  background: none;
+  border: 0;
   list-style: none;
   cursor: pointer;
 }
@@ -345,8 +346,9 @@ details.notion-toggle[open] > summary::before {
   transform: rotate(90deg);
 }
 
-details.notion-toggle > summary:hover {
-  border-color: var(--g-line);
+/* al passaggio la freccia si accende, senza riquadri */
+details.notion-toggle > summary:hover::before {
+  filter: brightness(1.35);
 }
 
 details.notion-toggle > div {
@@ -942,11 +944,17 @@ details.notion-toggle > div {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 36px;
-  padding-left: 50.4px;
-  /* livello 1 (titolo grande): cartella verde con chevron */
+  /* Distanze misurate sul disegno visibile (cartella.png ha un margine
+     trasparente: la cartella occupa solo dal 18,7% all'81,3% della sua
+     larghezza). La tua freccia (freccia-web.png) finisce a 9,2 px; la
+     cartella, in un riquadro di 28 px messo a 12 px, si vede da 17,2 a
+     34,8 px; il testo parte a 42,8 px. Così ci sono 8 px tra freccia e
+     cartella e 8 px tra cartella e testo. */
+  padding-left: 42.8px;
+  /* livello 1 (titolo grande): freccia e cartella */
   background:
-    var(--fx-chevron) no-repeat 0 50% / 9.6px 14.4px,
-    var(--fx-folder) no-repeat 21.6px 50% / 24px auto;
+    url('/icons/freccia-web.png') no-repeat 0 50% / 9.6px 14.4px,
+    var(--fx-folder) no-repeat 12px 50% / 28px auto;
   font-weight: 500;
 }
 
@@ -955,20 +963,10 @@ details.notion-toggle > div {
   .notion-table-of-contents-item-body[style*='margin-left: 24px'],
 .notion-table-of-contents
   .notion-table-of-contents-item-body[style*='margin-left: 48px'] {
-  padding-left: 31.2px;
+  /* icona del file 0–16,8 px, testo 9,6 px dopo (come cartella e testo) */
+  padding-left: 26.4px;
   background: var(--fx-file) no-repeat 0 50% / 16.8px auto;
   font-weight: 400;
-}
-
-/* chevron bianco sulla riga selezionata */
-.notion-table-of-contents
-  .notion-table-of-contents-item:hover
-  .notion-table-of-contents-item-body:not([style*='margin-left: 24px']):not(
-    [style*='margin-left: 48px']
-  ) {
-  background:
-    var(--fx-chevron-on) no-repeat 0 50% / 9.6px 14.4px,
-    var(--fx-folder) no-repeat 21.6px 50% / 24px auto;
 }
 
 /* ---------- Extra ---------- */
@@ -1457,6 +1455,9 @@ a.notion-bookmark:focus-visible {
 .index-page .notion-gallery .notion-collection-card-property {
   padding: 0;
   justify-content: center;
+  /* react-notion-x qui nasconde ciò che sporge: tagliava gli angoli bassi
+     del riquadro giallo del titolo (e su Safari lasciava una righina) */
+  overflow: visible;
 }
 
 /* l'icona piccola accanto al titolo non serve più */
@@ -1486,28 +1487,64 @@ a.notion-bookmark:focus-visible {
     color 0.15s;
 }
 
-/* cartella selezionata: riquadro chiaro sull'icona, titolo giallo */
-.index-page
-  .notion-gallery
-  .notion-collection-card:hover
-  .notion-collection-card-cover,
+/* cartella selezionata: riquadro chiaro sull'icona, titolo giallo.
+   - mouse: al passaggio (solo dove esiste il passaggio del mouse: su
+     telefoni e tablet lo stato resterebbe "attaccato" dopo il tocco e la
+     cartella rimarrebbe evidenziata tornando alla home)
+   - tastiera: con il focus
+   - tocco: mentre la cartella è premuta e poi finché la sottopagina non
+     si apre (classe g-card-loading, vedi NotionPage.tsx) */
+@media (hover: hover) and (pointer: fine) {
+  .index-page
+    .notion-gallery
+    .notion-collection-card:hover
+    .notion-collection-card-cover {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .index-page
+    .notion-gallery
+    .notion-collection-card:hover
+    .notion-page-title-text {
+    background: var(--g-yellow-soft);
+    color: var(--g-yellow-ink);
+  }
+}
+
 .index-page
   .notion-gallery
   .notion-collection-card:focus-visible
+  .notion-collection-card-cover,
+.index-page
+  .notion-gallery
+  .notion-collection-card:active
+  .notion-collection-card-cover,
+.index-page
+  .notion-gallery
+  .notion-collection-card.g-card-loading
   .notion-collection-card-cover {
   background-color: rgba(255, 255, 255, 0.12);
 }
 
 .index-page
   .notion-gallery
-  .notion-collection-card:hover
+  .notion-collection-card:focus-visible
   .notion-page-title-text,
 .index-page
   .notion-gallery
-  .notion-collection-card:focus-visible
+  .notion-collection-card:active
+  .notion-page-title-text,
+.index-page
+  .notion-gallery
+  .notion-collection-card.g-card-loading
   .notion-page-title-text {
   background: var(--g-yellow-soft);
   color: var(--g-yellow-ink);
+}
+
+/* niente riflesso grigio/blu del tocco sulle cartelle */
+.index-page .notion-gallery .notion-collection-card {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .index-page .notion-gallery .notion-collection-card:focus-visible {
@@ -1586,20 +1623,40 @@ details.notion-toggle .notion-text {
   background: none;
 }
 
+/* Spazio per le ombre diffuse. La striscia scorre, quindi taglia tutto ciò
+   che esce dai suoi bordi: la allarghiamo oltre i margini del testo (sopra,
+   sotto e ai lati) con un'imbottitura uguale, così le foto partono sempre
+   dal margine del testo e l'ombra ha posto anche ai lati, pure dentro
+   colonne e toggle. Ai lati una sfumatura: le foto che scorrono e le ombre
+   svaniscono morbide invece di finire con un taglio netto. */
+.notion-callout.notion-gallery_co {
+  --g-shadow-room: 32px;
+}
+
 .notion-gallery_co > .notion-callout-text {
   display: flex;
-  width: 100%;
+  width: auto;
   gap: 18px;
-  margin: 0;
-  /* spazio sopra e sotto perché l'ombra non venga tagliata; ai lati la
-     striscia finisce esattamente ai margini del testo */
-  margin: -14px 0 -22px;
-  padding: 14px 0 46px;
+  margin: -14px calc(-1 * var(--g-shadow-room)) -22px;
+  padding: 14px var(--g-shadow-room) 46px;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: 0;
+  scroll-padding-inline: var(--g-shadow-room);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--g-shadow-room),
+    #000 calc(100% - var(--g-shadow-room)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--g-shadow-room),
+    #000 calc(100% - var(--g-shadow-room)),
+    transparent
+  );
   scrollbar-width: none;
   white-space: normal;
 }
@@ -1614,6 +1671,69 @@ details.notion-toggle .notion-text {
   border-radius: 14px;
 }
 
+/* pulsante "Scarica" su ogni foto (in Notion: ⬇️ insieme a 🖼️). Tondo, in
+   vetro scuro, nell'angolo in basso a destra: con il mouse compare passando
+   sulla foto, su telefoni e tablet è sempre visibile. */
+.notion-gallery_co figure:has(> div .g-gallery-dl) > div {
+  position: relative !important;
+}
+
+.g-gallery-dl {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  background: rgba(20, 22, 30, 0.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.g-gallery-dl svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.g-gallery-dl:active,
+.g-gallery-dl:focus-visible {
+  outline: none;
+  background: var(--g-yellow);
+  color: #111111;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .g-gallery-dl {
+    opacity: 0;
+  }
+
+  .notion-gallery_co figure:hover .g-gallery-dl,
+  .g-gallery-dl:focus-visible {
+    opacity: 1;
+  }
+
+  .g-gallery-dl:hover {
+    background: var(--g-yellow);
+    color: #111111;
+  }
+}
+
 /* ogni foto: altezza fissa, larghezza secondo le proporzioni */
 .notion-gallery_co figure.notion-asset-wrapper {
   flex: 0 0 auto;
@@ -1623,7 +1743,6 @@ details.notion-toggle .notion-text {
   display: flex;
   flex-direction: column;
   margin: 0;
-  scroll-snap-align: start;
   /* tutte le foto allineate in alto: la didascalia va sotto il bordo comune
      (react-notion-x le centrava e quelle con didascalia salivano) */
   align-self: flex-start;
@@ -1701,8 +1820,6 @@ details.notion-toggle .notion-text {
   border-radius: 50%;
   background: rgba(20, 24, 60, 0.55);
   color: #fff;
-  font-size: 22px;
-  line-height: 1;
   cursor: pointer;
   opacity: 0;
   transform: translateY(-50%);
@@ -1712,6 +1829,16 @@ details.notion-toggle .notion-text {
   transition:
     opacity 0.2s,
     background-color 0.2s;
+}
+
+.g-gallery-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .g-gallery-btn--prev {
@@ -1741,6 +1868,7 @@ details.notion-toggle .notion-text {
 @media (hover: none), (max-width: 640px) {
   .notion-callout.notion-gallery_co {
     --g-gallery-h: clamp(200px, 58vw, 340px);
+    --g-shadow-room: 14px;
   }
 
   .g-gallery-btn {
@@ -2791,4 +2919,36 @@ html {
   a.notion-list-item[data-g-separator]
   > * {
   display: none;
+}
+
+/* ==========================================================
+   Stampa: al posto della pagina solo un avviso (le scorciatoie ⌘P/Ctrl+P
+   sono bloccate in NotionPage.tsx; questo copre la stampa dal menu File)
+   ========================================================== */
+@media print {
+  body > * {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  html::before,
+  html::after,
+  body::before {
+    display: none !important;
+  }
+
+  body::after {
+    content: 'Romeo Gabriele | Studio Garaggio — garaggio.art';
+    display: block;
+    margin-top: 40vh;
+    color: #000000;
+    font:
+      600 18px/1.4 system-ui,
+      sans-serif;
+    text-align: center;
+  }
 }

@@ -14,6 +14,9 @@ export interface PageProps {
   recordMap?: ExtendedRecordMap
   pageId?: string
   error?: PageError
+  /** quando il server ha generato la pagina (ms): serve a riconoscere nel
+   *  browser una copia vecchia servita dalla cache di Vercel */
+  generatedAt?: number
 }
 
 export interface ExtendedTweetRecordMap extends ExtendedRecordMap {

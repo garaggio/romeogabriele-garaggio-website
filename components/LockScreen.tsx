@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import * as React from 'react'
 
 import type { LockNotification, LockScreenData } from '@/lib/lockscreen'
@@ -48,10 +47,12 @@ function Notification({
 
   if (!href) return <div className={styles.notif}>{inner}</div>
 
+  // pagina del sito: caricamento completo (come un link esterno), senza
+  // il passaggio istantaneo di Next che fa scorrere la vista verso il titolo
   return isInternal(href) ? (
-    <Link href={href} className={styles.notif}>
+    <a href={href} className={styles.notif}>
       {inner}
-    </Link>
+    </a>
   ) : (
     <a
       href={href}
@@ -123,6 +124,7 @@ export function LockScreen({
   // Scorrimento su tutta l'area delle notifiche, come nella galleria: anche
   // sopra l'intestazione e nei margini il trackpad e il dito fanno scorrere
   // l'elenco. Arrivati in cima o in fondo all'elenco si prosegue con la pagina.
+  // Trackpad/rotellina: sopra l'elenco ci pensa il browser, altrove onWheel.
   const rootRef = React.useRef<HTMLElement>(null)
 
   React.useEffect(() => {
@@ -134,9 +136,6 @@ export function LockScreen({
       dy > 0
         ? stack.scrollTop + stack.clientHeight < stack.scrollHeight - 1
         : dy < 0 && stack.scrollTop > 0
-    const outside = (target: EventTarget | null) =>
-      !(target instanceof Node && stack.contains(target))
-
     // durante il gesto l'aggancio alle notifiche è sospeso (altrimenti ogni
     // piccolo spostamento tornerebbe indietro); a gesto finito si riattiva e
     // l'elenco si ferma sulla notifica più vicina
@@ -150,39 +149,99 @@ export function LockScreen({
       }, 160)
     }
 
+    // Trackpad e rotellina, su tutta l'area (elenco compreso): finché
+    // l'elenco può scorrere in quella direzione lo muoviamo noi; al bordo
+    // l'evento resta al browser e scorre la pagina (anche in Safari, che da
+    // solo non passerebbe lo scorrimento alla pagina nello stesso gesto).
     const onWheel = (event: WheelEvent) => {
-      // dentro l'elenco ci pensa il browser
-      if (!outside(event.target)) return
       const dy = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY
       if (Math.abs(event.deltaX) > Math.abs(dy) || !canScroll(dy)) return
       event.preventDefault()
       scrollBy(dy)
     }
 
+    // Tocco (telefoni e tablet). All'inizio di ogni gesto si decide chi
+    // scorre: se l'elenco può ancora scorrere in quella direzione, il gesto
+    // muove l'elenco e, arrivato al bordo, prosegue con la pagina; se
+    // l'elenco è già al bordo, il gesto resta tutto al browser, che scorre la
+    // pagina in modo nativo (con la sua inerzia). L'elenco non scorre mai da
+    // solo (overflow nascosto nel CSS): niente rimbalzi né gesti trattenuti.
+    const overflowing = () => stack.scrollHeight > stack.clientHeight + 1
+    const consume = (dy: number) => {
+      let rest = dy
+      if (canScroll(rest)) {
+        const before = stack.scrollTop
+        scrollBy(rest)
+        rest -= stack.scrollTop - before
+      }
+      if (Math.abs(rest) > 0.5) window.scrollBy(0, rest)
+    }
+
     let lastY = 0
+    let lastT = 0
+    let velocity = 0
     let tracking = false
+    let mode: 'list' | 'page' | undefined
+    let inertia = 0
+    const stopInertia = () => cancelAnimationFrame(inertia)
+
     const onTouchStart = (event: TouchEvent) => {
-      tracking = outside(event.target) && event.touches.length === 1
-      lastY = event.touches[0]?.clientY ?? 0
+      stopInertia()
+      const touch = event.touches[0]
+      tracking = event.touches.length === 1 && !!touch && overflowing()
+      mode = undefined
+      lastY = touch?.clientY ?? 0
+      lastT = event.timeStamp
+      velocity = 0
     }
     const onTouchMove = (event: TouchEvent) => {
       const touch = event.touches[0]
       if (!tracking || !touch) return
       const dy = lastY - touch.clientY
-      lastY = touch.clientY
-      if (!canScroll(dy)) return
+      // primo movimento del gesto: elenco o pagina?
+      if (mode === undefined) {
+        if (Math.abs(dy) < 1) return
+        mode = canScroll(dy) ? 'list' : 'page'
+      }
+      // pagina: lo scorrimento resta al browser
+      if (mode === 'page') return
       event.preventDefault()
-      scrollBy(dy)
+      const dt = Math.max(1, event.timeStamp - lastT)
+      lastY = touch.clientY
+      lastT = event.timeStamp
+      // velocità smussata (px/ms) per l'inerzia
+      velocity = velocity * 0.6 + (dy / dt) * 0.4
+      consume(dy)
+    }
+    const onTouchEnd = () => {
+      if (!tracking) return
+      tracking = false
+      if (mode !== 'list') return
+      let v = velocity
+      let prev = performance.now()
+      const step = (now: number) => {
+        const dt = Math.min(32, now - prev)
+        prev = now
+        consume(v * dt)
+        v *= Math.pow(0.95, dt / 16)
+        if (Math.abs(v) > 0.02) inertia = requestAnimationFrame(step)
+      }
+      if (Math.abs(v) > 0.05) inertia = requestAnimationFrame(step)
     }
 
     root.addEventListener('wheel', onWheel, { passive: false })
     root.addEventListener('touchstart', onTouchStart, { passive: true })
     root.addEventListener('touchmove', onTouchMove, { passive: false })
+    root.addEventListener('touchend', onTouchEnd)
+    root.addEventListener('touchcancel', onTouchEnd)
     return () => {
+      stopInertia()
       clearTimeout(resume)
       root.removeEventListener('wheel', onWheel)
       root.removeEventListener('touchstart', onTouchStart)
       root.removeEventListener('touchmove', onTouchMove)
+      root.removeEventListener('touchend', onTouchEnd)
+      root.removeEventListener('touchcancel', onTouchEnd)
     }
   }, [notifications])
 

@@ -237,6 +237,58 @@
   white-space: nowrap;
 }
 
+/* contatore e, se attivo (⬇️ in Notion), il pulsante "Scarica" */
+.metaSide {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* pulsante Platinum: grigio in rilievo, bordo nero, si "preme" al clic */
+.download {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px 3px 7px;
+  border: 1px solid var(--sb-ink);
+  border-radius: 4px;
+  background: var(--sb-face);
+  box-shadow: var(--sb-bevel);
+  color: var(--sb-ink);
+  font-size: 12px;
+  line-height: 16px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.download svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.download:active {
+  background: var(--sb-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--sb-ink),
+    inset -1px -1px 0 var(--sb-face);
+  color: var(--sb-light);
+}
+
+.download:focus-visible {
+  outline: 2px solid var(--sb-ink);
+  outline-offset: 2px;
+}
+
 /* ---------- Barra di scorrimento classica ---------- */
 
 .scrollbar {
@@ -261,6 +313,18 @@
   font-size: 8px;
   line-height: 1;
   cursor: pointer;
+}
+
+/* freccia: triangolo pieno grigio scuro, come la barra del Mac classico */
+.arrowGlyph {
+  display: block;
+  width: 8px;
+  height: 8px;
+  fill: #333333;
+}
+
+.arrow:disabled .arrowGlyph {
+  fill: var(--sb-dark);
 }
 
 .arrow:first-child {
@@ -421,6 +485,37 @@
 
 .modern .meta {
   padding: 10px 14px 11px;
+}
+
+/* pulsante "Scarica": più morbido, giallo al passaggio e alla pressione */
+.modern .download {
+  padding: 4px 12px 5px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 18px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.modern .download svg {
+  width: 13px;
+  height: 13px;
+}
+
+.modern .download:active {
+  background: var(--sb-accent);
+  box-shadow: var(--sb-bevel);
+  color: var(--sb-ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .modern .download:hover {
+    background: var(--sb-accent);
+  }
+}
+
+.modern .download:focus-visible {
+  outline-color: var(--sb-accent);
 }
 
 /* cambio di foto: la nuova entra dal lato verso cui si sfoglia, con una

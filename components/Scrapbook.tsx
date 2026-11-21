@@ -34,6 +34,8 @@ export interface ScrapbookProps {
   initialIndex?: number
   /** clic sulla foto: ingrandimento animato come nella galleria a scorrimento */
   zoomable?: boolean
+  /** pulsante "Scarica" per la foto mostrata (passa da /api/download) */
+  downloadable?: boolean
   /** clic sull'immagine centrale, oltre all'ingrandimento */
   onInspect?: (item: ScrapbookItem, index: number) => void
   className?: string
@@ -59,6 +61,7 @@ export function Scrapbook({
   variant = 'classic',
   initialIndex = 0,
   zoomable = true,
+  downloadable = false,
   onInspect,
   className
 }: ScrapbookProps) {
@@ -500,9 +503,29 @@ export function Scrapbook({
               )
             })}
           </div>
-          <p className={styles.counter} aria-live='polite'>
-            {current + 1} di {count}
-          </p>
+          <div className={styles.metaSide}>
+            <p className={styles.counter} aria-live='polite'>
+              {current + 1} di {count}
+            </p>
+            {downloadable && (
+              // il file arriva come allegato (download vero, non una scheda
+              // nuova) e con il suo nome; sopra i 4 MB si apre da Notion
+              <a
+                className={styles.download}
+                href={`/api/download?${new URLSearchParams({
+                  url: item.url,
+                  name: item.filename
+                })}`}
+                download={item.filename}
+                aria-label={`Scarica ${item.filename}`}
+              >
+                <svg viewBox='0 0 12 12' aria-hidden='true'>
+                  <path d='M6 1.5v6M3.25 5 6 7.75 8.75 5M2 10.25h8' />
+                </svg>
+                Scarica
+              </a>
+            )}
+          </div>
         </div>
 
         {/* barra di scorrimento classica (non quella del browser) */}
@@ -515,7 +538,14 @@ export function Scrapbook({
             aria-label='Immagine precedente'
             tabIndex={-1}
           >
-            ◀
+            {/* triangoli disegnati: i caratteri ◀ ▶ diventano emoji su iPhone */}
+            <svg
+              className={styles.arrowGlyph}
+              viewBox='0 0 8 8'
+              aria-hidden='true'
+            >
+              <path d='M6 1v6L2 4z' />
+            </svg>
           </button>
 
           <div
@@ -550,7 +580,13 @@ export function Scrapbook({
             aria-label='Immagine successiva'
             tabIndex={-1}
           >
-            ▶
+            <svg
+              className={styles.arrowGlyph}
+              viewBox='0 0 8 8'
+              aria-hidden='true'
+            >
+              <path d='M2 1v6l4-3z' />
+            </svg>
           </button>
         </div>
       </div>

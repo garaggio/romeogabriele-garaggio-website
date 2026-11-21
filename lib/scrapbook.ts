@@ -15,12 +15,16 @@ import { mapImageUrl } from './map-image-url'
 //  - campi separati da "|" (tutti facoltativi):
 //      Titolo | Categoria | Anno | Descrizione
 //    es. "Prove al Garaggio | Concerti | 2024 | Sala prove, prima del tour"
+//
+// Con ⬇️ nel titolo ("🗃️ Press kit ⬇️") la finestra ha il pulsante "Scarica".
 
 export interface ScrapbookBlock {
   /** id del callout, senza trattini (come nella classe notion-block-…) */
   blockId: string
   title: string
   variant: 'classic' | 'modern'
+  /** pulsante "Scarica" (segno ⬇️ nel titolo in Notion) */
+  downloadable: boolean
   items: ScrapbookItem[]
 }
 
@@ -89,10 +93,52 @@ export function getScrapbooks(recordMap: ExtendedRecordMap): ScrapbookBlock[] {
         title: block.format?.scrapbook_title || 'Galleria — Archivio',
         variant:
           block.format?.scrapbook_variant === 'modern' ? 'modern' : 'classic',
+        downloadable: !!block.format?.scrapbook_download,
         items
       })
     }
   }
 
   return scrapbooks
+}
+
+// Galleria a scorrimento 🖼️ con ⬇️ (vedi lib/notion.ts): per ogni foto, il
+// file da scaricare e il suo nome. NotionPage.tsx ci aggiunge i pulsanti.
+export interface GalleryDownload {
+  /** id della foto, senza trattini (come nella classe notion-block-…) */
+  blockId: string
+  url: string
+  filename: string
+}
+
+export function getGalleryDownloads(
+  recordMap: ExtendedRecordMap
+): GalleryDownload[] {
+  const downloads: GalleryDownload[] = []
+
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (
+      block?.type !== 'callout' ||
+      block.format?.block_color !== 'gallery' ||
+      !block.format?.gallery_download
+    ) {
+      continue
+    }
+
+    for (const childId of block.content ?? []) {
+      const child: any = getBlockValue(recordMap.block[childId])
+      if (child?.type !== 'image') continue
+      const source: string | undefined = child.properties?.source?.[0]?.[0]
+      const url = source ? mapImageUrl(source, child) : undefined
+      if (!source || !url) continue
+      downloads.push({
+        blockId: String(child.id).replaceAll('-', ''),
+        url,
+        filename: fileNameFrom(source)
+      })
+    }
+  }
+
+  return downloads
 }

@@ -5,6 +5,7 @@
 // Accettiamo solo indirizzi di Notion: non è un proxy per qualsiasi sito.
 
 const allowedHosts = new Set([
+  'app.notion.com',
   'file.notion.com',
   'file.notion.so',
   'www.notion.so',

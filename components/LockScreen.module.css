@@ -120,8 +120,10 @@
   min-height: 0;
   margin-top: 16px;
   padding: 18px 0 14px;
+  /* l'elenco scorre solo tramite LockScreen.tsx (rotellina, trackpad,
+     dito): così ai bordi lo scorrimento passa sempre alla pagina */
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   /* arrivati in cima o in fondo all'elenco lo scorrimento passa alla
      pagina: nessuno resta bloccato dentro le notifiche */
   overscroll-behavior: auto;

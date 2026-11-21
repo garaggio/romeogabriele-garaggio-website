@@ -215,15 +215,29 @@ function applyBookmarkCaptions(recordMap: ExtendedRecordMap) {
   }
 }
 
+// ⬇️ (o 📥) accanto al segno di una galleria (🖼️ striscia o 🗂️/🗃️
+// raccoglitore) aggiunge il pulsante "Scarica" per le foto: "🗃️ Press kit ⬇️",
+// "🖼️ ⬇️". Il segno non compare.
+const downloadMarkers = ['⬇️', '⬇', '📥']
+const hasDownloadMarker = (text?: string) =>
+  !!text && downloadMarkers.some((m) => text.includes(m))
+const stripDownloadMarkers = (text: string) =>
+  downloadMarkers
+    .reduce((t, m) => t.replaceAll(m, ''), text)
+    .replaceAll(/\s{2,}/g, ' ')
+    .trim()
+
 // Galleria a scorrimento: in Notion è un callout con icona 🖼️ / 📷 / 📸
 // (oppure con scritto solo "Galleria") e le foto messe DENTRO il callout.
+// Con ⬇️ ("🖼️ ⬇️" come prima riga, o una riga "⬇️" con l'icona 🖼️) ogni foto
+// ha il pulsante per scaricarla.
 // Gli diamo il colore finto "gallery": react-notion-x lo scrive come classe
 // "notion-gallery_co" e il CSS lo trasforma in una striscia orizzontale.
 // Icona e testo del callout non servono più: li togliamo, restano solo le foto.
 const galleryIcons = new Set(['🖼️', '🖼', '📷', '📸'])
 
 const isGalleryMarker = (text: string) => {
-  const t = text.trim().toLowerCase()
+  const t = stripDownloadMarkers(text).toLowerCase()
   return galleryIcons.has(t) || t === 'galleria'
 }
 
@@ -244,21 +258,34 @@ function markPhotoGalleries(recordMap: ExtendedRecordMap) {
     // prima riga scritta dentro è un blocco di testo figlio
     const firstLine = content[0] ? textOf(content[0]) : undefined
 
+    const ownTitle = getTextContent(block.properties?.title)
     const isGallery =
       galleryIcons.has(block.format?.page_icon) ||
-      isGalleryMarker(getTextContent(block.properties?.title)) ||
+      isGalleryMarker(ownTitle) ||
       (firstLine !== undefined && isGalleryMarker(firstLine))
     if (!isGallery) continue
 
-    block.format = { ...block.format, block_color: 'gallery' }
+    // ⬇️ nella riga del segno (o da solo, come prima riga): pulsante Scarica
+    const downloadable = [ownTitle, firstLine].some(
+      (t) =>
+        hasDownloadMarker(t) &&
+        (!stripDownloadMarkers(t!) || isGalleryMarker(t!))
+    )
+
+    block.format = {
+      ...block.format,
+      block_color: 'gallery',
+      gallery_download: downloadable || undefined
+    }
     delete block.format.page_icon
     if (block.properties) delete block.properties.title
 
-    // via la riga "🖼️"/"Galleria" e le righe vuote: restano solo le foto
+    // via la riga "🖼️"/"Galleria"/"⬇️" e le righe vuote: restano solo le foto
     block.content = content.filter((id) => {
       const text = textOf(id)
       return (
-        text === undefined || !(text.trim() === '' || isGalleryMarker(text))
+        text === undefined ||
+        !(stripDownloadMarkers(text) === '' || isGalleryMarker(text))
       )
     })
   }
@@ -314,8 +341,10 @@ function markScrapbooks(recordMap: ExtendedRecordMap) {
     }
 
     // il nome della finestra: testo dopo il segno, o il testo del callout
-    const name =
+    const rawName =
       fromTitle ?? fromFirstLine ?? (ownTitle.trim() || firstLine?.trim())
+    const downloadable = [rawName, ownTitle, firstLine].some(hasDownloadMarker)
+    const name = rawName ? stripDownloadMarkers(rawName) : rawName
     // 🗃️ (icona o inizio del testo) sceglie la versione "Platinum ritoccato"
     const modern = [block.format?.page_icon, ownTitle.trim(), firstLine?.trim()]
       .filter(Boolean)
@@ -324,7 +353,8 @@ function markScrapbooks(recordMap: ExtendedRecordMap) {
       ...block.format,
       block_color: 'scrapbook',
       scrapbook_title: name ? `Galleria — ${name}` : undefined,
-      scrapbook_variant: modern ? 'modern' : 'classic'
+      scrapbook_variant: modern ? 'modern' : 'classic',
+      scrapbook_download: downloadable || undefined
     }
     delete block.format.page_icon
     if (block.properties) delete block.properties.title
@@ -350,7 +380,7 @@ function markScrapbooks(recordMap: ExtendedRecordMap) {
 //     menu da solo, nel punto della pagina in cui si trova.
 // Qualsiasi vista va bene (galleria, lista, tabella): nel menu diventa lista.
 // Dopo il segno si può indicare dove aprire il menu sulla foto, in percentuale
-// da sinistra e dall'alto: "🖱️ 60 25" (di base 55 20).
+// da sinistra e dall'alto: "🖱️ 60 25" (senza numeri: al centro della foto).
 // Il callout prende il colore finto "contextmenu" (classe notion-contextmenu_co)
 // e la posizione in format.menu_position; il resto lo fanno CSS e NotionPage.tsx.
 const menuIcons = ['🖱️', '🖱']

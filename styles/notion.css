@@ -121,13 +121,11 @@
 }
 
 /* citazione: stessa grandezza e interlinea del testo (vedi --g-text-size
-   in global.css); resta in corsivo con la barra a sinistra */
+   in global.css), in corsivo. La barra a sinistra è in global.css. */
 .notion-quote {
-  padding: 0.1em 0.9em;
   line-height: 1.65;
   font-style: italic;
   font-size: var(--g-text-size);
-  border-left: 4px solid #67bdfc;
 }
 
 .notion-h1,

@@ -473,7 +473,7 @@ details.notion-toggle > div {
   --g-arrow-gradient: linear-gradient(to bottom, #0b92ed, #1654f8);
   position: relative;
   border-left: 0;
-  padding-left: calc(0.9em + 3px);
+  padding: 0.1em 0.9em 0.1em calc(0.9em + 3px);
 }
 
 .notion-quote::before {
@@ -1843,10 +1843,6 @@ html {
 .notion-callout-text,
 .notion-list li {
   line-height: 1.65;
-}
-
-.notion-quote {
-  padding: 0.1em 0.9em;
 }
 
 /* callout: icona grande quanto il testo, allineata alla prima riga */

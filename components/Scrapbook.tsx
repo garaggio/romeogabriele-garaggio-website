@@ -5,6 +5,7 @@ import { preload } from 'react-dom'
 
 import { optimizedImage, optimizedSrcSet } from '@/lib/optimized-image'
 import { lockPageScroll } from '@/lib/scroll-lock'
+import { isVideoZoomOpen, openVideoZoom } from '@/lib/video-zoom'
 
 import styles from './Scrapbook.module.css'
 
@@ -18,6 +19,10 @@ import styles from './Scrapbook.module.css'
 
 export interface ScrapbookItem {
   id: string
+  /** video: fermo con l'icona ▶, parte ingrandito al clic */
+  kind?: 'image' | 'video'
+  /** video: fotogramma di anteprima generato da Notion */
+  poster?: string
   title: string
   filename: string
   url: string
@@ -90,6 +95,8 @@ export function Scrapbook({
   const thumbRef = React.useRef<HTMLDivElement>(null)
   const grabOffset = React.useRef(0)
   const photoRef = React.useRef<HTMLImageElement>(null)
+  const videoRef = React.useRef<HTMLVideoElement>(null)
+  const closeVideo = React.useRef<(() => void) | null>(null)
   const stageRef = React.useRef<HTMLDivElement>(null)
   // dopo uno scorrimento col dito il "tocco" non deve aprire lo zoom
   const swiped = React.useRef(false)
@@ -211,7 +218,7 @@ export function Scrapbook({
   // La prima foto si scarica insieme alla pagina (il server la annuncia nel
   // <head>), non quando il riquadro è già sullo schermo.
   const first = items[clamp(initialIndex, 0, Math.max(0, count - 1))]
-  if (first) {
+  if (first && first.kind !== 'video') {
     const source = photoSource(first.url)
     preload(source.src, {
       as: 'image',
@@ -225,7 +232,7 @@ export function Scrapbook({
   React.useEffect(() => {
     for (const i of [current - 1, current + 1]) {
       const near = items[i]
-      if (near) {
+      if (near && near.kind !== 'video') {
         const img = new Image()
         const source = photoSource(near.url)
         img.decoding = 'async'
@@ -303,10 +310,23 @@ export function Scrapbook({
   }
 
   // chiude l'ingrandimento se il componente sparisce (cambio pagina)
-  React.useEffect(() => () => closeZoom.current?.(), [])
+  React.useEffect(
+    () => () => {
+      closeZoom.current?.()
+      closeVideo.current?.()
+    },
+    []
+  )
+
+  // video: ingrandito parte, al clic (o Esc) si ferma e torna al suo posto
+  const openVideo = () => {
+    const video = videoRef.current
+    if (video) closeVideo.current = openVideoZoom(video)
+  }
+  const zoomOpen = () => !!closeZoom.current || isVideoZoomOpen()
 
   const onKeyDown = (event: React.KeyboardEvent) => {
-    if (closeZoom.current) return
+    if (zoomOpen()) return
     const keys: Record<string, number> = {
       ArrowLeft: current - 1,
       ArrowRight: current + 1,
@@ -327,7 +347,7 @@ export function Scrapbook({
   React.useEffect(() => {
     if (count < 2) return
     const onKey = (event: KeyboardEvent) => {
-      if (!hovering.current || closeZoom.current || event.defaultPrevented) {
+      if (!hovering.current || zoomOpen() || event.defaultPrevented) {
         return
       }
       if (event.metaKey || event.ctrlKey || event.altKey) return
@@ -391,6 +411,34 @@ export function Scrapbook({
 
   if (!count || !item) return null
 
+  // video: fermo sul primo fotogramma ("#t=0.1", anche su iPhone), senza
+  // comandi, con l'icona ▶ in basso come nella galleria a scorrimento
+  const videoFrame = (
+    <span
+      key={item.id}
+      className={styles.media}
+      data-dir={nav.dir || undefined}
+    >
+      <video
+        ref={videoRef}
+        className={`${styles.photo} ${styles.video}`}
+        src={`${item.url}#t=0.1`}
+        poster={item.poster}
+        muted
+        playsInline
+        preload='metadata'
+        disablePictureInPicture
+        controlsList='nodownload noremoteplayback'
+        aria-label={item.title}
+      />
+      <span className={`g-gallery-play ${styles.play}`} aria-hidden='true'>
+        <svg viewBox='0 0 16 16'>
+          <path d='M5.5 3.6v8.8a.6.6 0 0 0 .9.5l7-4.4a.6.6 0 0 0 0-1L6.4 3.1a.6.6 0 0 0-.9.5z' />
+        </svg>
+      </span>
+    </span>
+  )
+
   const thumbStyle = {
     '--sb-size': `${100 / count}%`,
     '--sb-pos': count > 1 ? current / (count - 1) : 0
@@ -427,7 +475,10 @@ export function Scrapbook({
           // Invio sul pulsante arriva qui come clic.
           onClick={() => {
             if (swiped.current || !(zoomable || onInspect)) return
-            if (zoomable) openZoom()
+            if (zoomable) {
+              if (item.kind === 'video') openVideo()
+              else openZoom()
+            }
             onInspect?.(item, current)
           }}
           onPointerEnter={(event) => {
@@ -441,18 +492,28 @@ export function Scrapbook({
             <button
               type='button'
               className={styles.inspect}
-              aria-label={`Ingrandisci ${item.title}`}
+              aria-label={
+                item.kind === 'video'
+                  ? `Riproduci ${item.title}`
+                  : `Ingrandisci ${item.title}`
+              }
             >
-              <img
-                key={item.id}
-                ref={photoRef}
-                className={styles.photo}
-                data-dir={nav.dir || undefined}
-                {...photoSource(item.url)}
-                alt={item.title}
-                decoding='async'
-              />
+              {item.kind === 'video' ? (
+                videoFrame
+              ) : (
+                <img
+                  key={item.id}
+                  ref={photoRef}
+                  className={styles.photo}
+                  data-dir={nav.dir || undefined}
+                  {...photoSource(item.url)}
+                  alt={item.title}
+                  decoding='async'
+                />
+              )}
             </button>
+          ) : item.kind === 'video' ? (
+            videoFrame
           ) : (
             <img
               key={item.id}

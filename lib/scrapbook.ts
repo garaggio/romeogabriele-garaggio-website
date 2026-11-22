@@ -17,6 +17,8 @@ import { mapImageUrl } from './map-image-url'
 //    es. "Prove al Garaggio | Concerti | 2024 | Sala prove, prima del tour"
 //
 // Con ⬇️ nel titolo ("🗃️ Press kit ⬇️") la finestra ha il pulsante "Scarica".
+// Oltre alle foto si possono mettere video (file caricati in Notion): fermi
+// con l'icona ▶, partono ingranditi al clic (lib/video-zoom.ts).
 
 export interface ScrapbookBlock {
   /** id del callout, senza trattini (come nella classe notion-block-…) */
@@ -38,6 +40,32 @@ const fileNameFrom = (source: string) => {
   }
 }
 
+// Anteprima dei video: Notion genera un fotogramma ("video_thumbnail") e lo
+// firma insieme al video. Si vede subito, con le proporzioni giuste, prima
+// ancora che il video cominci a caricarsi.
+const videoPoster = (recordMap: ExtendedRecordMap, block: any) => {
+  const thumbnail: string | undefined = block.format?.video_thumbnail
+  if (!thumbnail) return undefined
+  return (
+    recordMap.signed_urls?.[thumbnail] ??
+    (thumbnail.startsWith('https://') ? thumbnail : undefined)
+  )
+}
+
+/** anteprime dei video, per id del blocco senza trattini */
+export function getVideoPosters(
+  recordMap: ExtendedRecordMap
+): Record<string, string> {
+  const posters: Record<string, string> = {}
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (block?.type !== 'video') continue
+    const poster = videoPoster(recordMap, block)
+    if (poster) posters[String(block.id).replaceAll('-', '')] = poster
+  }
+  return posters
+}
+
 export function getScrapbooks(recordMap: ExtendedRecordMap): ScrapbookBlock[] {
   const previews = (recordMap as any).preview_images ?? {}
   const scrapbooks: ScrapbookBlock[] = []
@@ -56,10 +84,16 @@ export function getScrapbooks(recordMap: ExtendedRecordMap): ScrapbookBlock[] {
     // le foto: il contenuto originale del callout (vedi embedCustomCallouts)
     for (const childId of block.format?.g_content ?? block.content ?? []) {
       const child: any = getBlockValue(recordMap.block[childId])
-      if (child?.type !== 'image') continue
+      if (child?.type !== 'image' && child?.type !== 'video') continue
 
       const source: string | undefined = child.properties?.source?.[0]?.[0]
-      const url = source ? mapImageUrl(source, child) : undefined
+      // video: solo quelli caricati in Notion (hanno un indirizzo firmato)
+      const isVideo = child.type === 'video'
+      const url = isVideo
+        ? recordMap.signed_urls?.[child.id]
+        : source
+          ? mapImageUrl(source, child)
+          : undefined
       if (!source || !url) continue
 
       const filename = fileNameFrom(source)
@@ -78,6 +112,8 @@ export function getScrapbooks(recordMap: ExtendedRecordMap): ScrapbookBlock[] {
 
       items.push({
         id: child.id,
+        kind: isVideo ? 'video' : 'image',
+        poster: isVideo ? videoPoster(recordMap, child) : undefined,
         title: title || filename.replace(/\.[^.]+$/, ''),
         filename,
         url,
@@ -103,7 +139,7 @@ export function getScrapbooks(recordMap: ExtendedRecordMap): ScrapbookBlock[] {
   return scrapbooks
 }
 
-// Galleria a scorrimento 🖼️ con ⬇️ (vedi lib/notion.ts): per ogni foto, il
+// Galleria a scorrimento 🖼️ con ⬇️ (vedi lib/notion.ts): per ogni foto o video, il
 // file da scaricare e il suo nome. NotionPage.tsx ci aggiunge i pulsanti.
 export interface GalleryDownload {
   /** id della foto, senza trattini (come nella classe notion-block-…) */
@@ -129,9 +165,16 @@ export function getGalleryDownloads(
 
     for (const childId of block.content ?? []) {
       const child: any = getBlockValue(recordMap.block[childId])
-      if (child?.type !== 'image') continue
+      if (child?.type !== 'image' && child?.type !== 'video') continue
       const source: string | undefined = child.properties?.source?.[0]?.[0]
-      const url = source ? mapImageUrl(source, child) : undefined
+      // i video caricati in Notion hanno un indirizzo firmato a parte
+      // (YouTube e simili non si scaricano)
+      const url =
+        child.type === 'video'
+          ? recordMap.signed_urls?.[child.id]
+          : source
+            ? mapImageUrl(source, child)
+            : undefined
       if (!source || !url) continue
       downloads.push({
         blockId: String(child.id).replaceAll('-', ''),

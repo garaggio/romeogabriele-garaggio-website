@@ -5,13 +5,15 @@ import * as React from 'react'
 import type { AppRowData } from '@/lib/appstore'
 import type { LockScreenData } from '@/lib/lockscreen'
 import type { ScrapbookBlock } from '@/lib/scrapbook'
+import type { TelevisionData } from '@/lib/television'
 
 import { AppRow } from './AppRow'
 import { LockScreen } from './LockScreen'
 import { Scrapbook } from './Scrapbook'
+import { Television } from './Television'
 
 // Componenti del sito dentro le pagine di Notion: Raccoglitore 🗂️/🗃️,
-// notifiche 🔔/🔒 e righe App Store 🛍️. Sul server (lib/notion.ts,
+// notifiche 🔔/🔒, righe App Store 🛍️ e televisore 📺. Sul server (lib/notion.ts,
 // embedCustomCallouts) il contenuto di quei callout diventa un blocco
 // "codice" segnaposto; react-notion-x lo passa al nostro componente Code
 // (NotionPage.tsx), che qui disegna il componente giusto. Così arriva già
@@ -21,12 +23,14 @@ export interface CustomBlocks {
   scrapbooks: Map<string, ScrapbookBlock>
   lockScreens: Map<string, LockScreenData>
   appRows: Map<string, AppRowData>
+  televisions: Map<string, TelevisionData>
 }
 
 export const CustomBlocksContext = React.createContext<CustomBlocks>({
   scrapbooks: new Map(),
   lockScreens: new Map(),
-  appRows: new Map()
+  appRows: new Map(),
+  televisions: new Map()
 })
 
 /** elenco → mappa per id del callout (senza trattini) */
@@ -39,7 +43,7 @@ export const isCustomBlock = (block: any) =>
   !!block?.format?.g_kind
 
 export function CustomBlock({ block }: { block: any }) {
-  const { scrapbooks, lockScreens, appRows } =
+  const { scrapbooks, lockScreens, appRows, televisions } =
     React.useContext(CustomBlocksContext)
   const id = String(block.format.g_for ?? '').replaceAll('-', '')
 
@@ -88,6 +92,11 @@ export function CustomBlock({ block }: { block: any }) {
           />
         </div>
       )
+    }
+    case 'television': {
+      const data = televisions.get(id)
+      if (!data) return null
+      return <Television label={data.label} videos={data.videos} />
     }
     default:
       return null

@@ -1,0 +1,883 @@
+/* ==========================================================================
+   Televisore 📺 — copertina di "youtuyoutuyou 2.5"
+   Televideo su un vecchio schermo catodico: vetro bombato con i bordi scuri,
+   righe di scansione, grana, colori del televideo. Tutte le misure seguono la
+   larghezza del televisore (unità cqw), così sul telefono è identico.
+   ========================================================================== */
+
+.mount {
+  width: 100%;
+  margin: 1.75rem 0;
+}
+
+.tv {
+  /* i colori pieni della copertina */
+  --tv-red: #fe0000;
+  --tv-green: #7bff01;
+  --tv-yellow: #ffe300;
+  --tv-blue: #1200ff;
+  --tv-sky: #4aa8ff;
+  --tv-ink: #0c0c1c;
+  --tv-text: #e9e9f2;
+  --tv-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* sfasatura dei colori del tubo sulle scritte */
+  --tv-fringe:
+    -0.12cqw 0 rgba(255, 30, 70, 0.55), 0.12cqw 0 rgba(40, 170, 255, 0.55);
+
+  /* avanzamento del video (0…1), lo scrive Television.tsx */
+  --p: 0;
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  /* angoli, alone e filo di luce come le foto singole e le notifiche
+     (stesse variabili: --g-single-radius, --g-single-glow,
+     --g-single-glow-blur, --g-single-edge in styles/global.css) */
+  border-radius: var(--g-single-radius, 14px);
+  isolation: isolate;
+  color: var(--tv-text);
+  font-family: var(--tv-font);
+  line-height: 1;
+  text-align: left;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tv *,
+.tv *::before,
+.tv *::after {
+  box-sizing: border-box;
+}
+
+.tv:focus-visible {
+  outline: 2px solid var(--tv-yellow);
+  outline-offset: 4px;
+}
+
+/* Alone di colore: le copertine dei video, sfocate, appena fuori dal
+   riquadro (più presenti sotto), come dietro le foto singole. Il televisore
+   è grande e le copertine molto colorate: a metà intensità e un po' più
+   stretto, così all'occhio è leggero come quello delle foto.
+   Stabile: la sfocatura si calcola su un livello più grande del televisore
+   (--halo-room di margine trasparente tutto intorno), così la sfumatura
+   resta dentro il livello e il browser non la taglia mai a rettangolo.
+   Cambiando canale le copertine passano in dissolvenza (sono già caricate). */
+.halo {
+  --halo-room: calc(var(--g-single-glow-blur, 24px) * 2.5);
+  position: absolute;
+  z-index: -1;
+  inset: calc(-1 * var(--halo-room));
+  filter: blur(var(--g-single-glow-blur, 24px)) saturate(1.3);
+  opacity: calc(var(--g-single-glow, 0.55) * 0.5);
+  pointer-events: none;
+}
+
+.haloImage {
+  position: absolute;
+  /* fuori dal televisore: 4 px ai lati e in alto, 16 px sotto */
+  inset: calc(var(--halo-room) - 4px) calc(var(--halo-room) - 4px)
+    calc(var(--halo-room) - 16px);
+  border-radius: var(--g-single-radius, 14px);
+  background: center / cover no-repeat;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.haloImage[data-on] {
+  opacity: 1;
+}
+
+/* bordo di vetro: filo di luce sul contorno e riflesso in alto */
+.tv::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0) 30%
+  );
+  box-shadow:
+    inset 0 0 0 1px var(--g-single-edge, rgba(255, 255, 255, 0.22)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+/* lo schermo: stessi angoli del riquadro */
+.tube {
+  position: relative;
+  border-radius: inherit;
+}
+
+.screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    #1a1640 0%,
+    #0d0b22 55%,
+    #050410 100%
+  );
+  isolation: isolate;
+}
+
+/* ---------- In alto: lucine, canali, GARAGGIO ---------- */
+
+.hudTop {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  row-gap: clamp(4px, 1.1cqw, 12px);
+  padding: clamp(10px, 2.6cqw, 26px) clamp(16px, 5cqw, 52px)
+    clamp(8px, 1.8cqw, 18px);
+}
+
+.dots {
+  display: flex;
+  gap: clamp(3px, 0.7cqw, 7px);
+}
+
+.dots i {
+  display: block;
+  width: clamp(5px, 1.1cqw, 11px);
+  height: clamp(5px, 1.1cqw, 11px);
+  border-radius: 50%;
+  background: var(--tv-red);
+  box-shadow: 0 0 0.8cqw currentColor;
+  color: rgba(232, 38, 29, 0.6);
+}
+
+.dots i:nth-child(2) {
+  background: var(--tv-yellow);
+  color: rgba(244, 220, 38, 0.6);
+}
+
+.dots i:nth-child(3) {
+  background: var(--tv-green);
+  color: rgba(114, 228, 60, 0.6);
+}
+
+.channels {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  padding-left: clamp(10px, 4cqw, 44px);
+}
+
+.channel {
+  min-width: 0;
+  margin: 0;
+  padding: 0.25em 0.35em;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: #bdbdcc;
+  font-family: var(--tv-font);
+  font-size: clamp(9px, 1.75cqw, 17px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-shadow: var(--tv-fringe);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.channel:disabled {
+  color: #6c6c80;
+  cursor: default;
+}
+
+.channel[data-current] {
+  background: #f2f2f2;
+  color: #111111;
+  font-weight: 800;
+  text-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .channel:not(:disabled):not([data-current]):hover {
+    color: var(--tv-yellow);
+  }
+}
+
+.channel:focus-visible {
+  outline: 2px solid var(--tv-yellow);
+  outline-offset: 1px;
+}
+
+/* "▪ G A R A G G I O" (o, per un attimo, volume e canale) */
+.brand {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9em;
+  min-height: 1.2em;
+  margin: 0;
+  color: #d4d4de;
+  font-size: clamp(9px, 1.6cqw, 16px);
+  font-weight: 600;
+  letter-spacing: 0.75em;
+  text-indent: 0.75em; /* la spaziatura finale non sposta il centro */
+  text-shadow: var(--tv-fringe);
+  white-space: nowrap;
+}
+
+.brandSquare {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-right: -0.2em;
+  background: var(--tv-sky);
+}
+
+.osdVolume {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8em;
+  color: var(--tv-green);
+  letter-spacing: 0.3em;
+}
+
+.osdBlocks {
+  display: inline-flex;
+  gap: 0.25em;
+}
+
+.osdBlocks i {
+  display: block;
+  width: 0.55em;
+  height: 1em;
+  background: rgba(114, 228, 60, 0.18);
+}
+
+.osdBlocks i[data-on] {
+  background: var(--tv-green);
+}
+
+/* ---------- Il video ---------- */
+
+.picture {
+  position: relative;
+  width: auto;
+  /* staccato appena dai lati: si legge come un pannello incassato */
+  margin: 0 clamp(6px, 1.6cqw, 16px);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: clamp(4px, 0.9cqw, 9px);
+  background: #000000;
+  /* lo scorrimento verticale resta alla pagina, quello laterale cambia video */
+  touch-action: pan-y;
+}
+
+.player,
+.player iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* l'incavo: il video sta un poco più in basso del televisore. Ombra interna
+   più scura in alto e ai lati, un filo di luce sul bordo basso, come uno
+   schermo appena concavo. Leggero: è solo una suggestione */
+.picture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 clamp(4px, 0.9cqw, 9px) clamp(8px, 1.8cqw, 18px)
+      clamp(-6px, -0.6cqw, -3px) rgba(0, 0, 0, 0.6),
+    inset clamp(3px, 0.6cqw, 6px) 0 clamp(6px, 1.2cqw, 12px)
+      clamp(-5px, -0.5cqw, -3px) rgba(0, 0, 0, 0.45),
+    inset calc(-1 * clamp(3px, 0.6cqw, 6px)) 0 clamp(6px, 1.2cqw, 12px)
+      clamp(-5px, -0.5cqw, -3px) rgba(0, 0, 0, 0.45),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  /* centro appena più chiaro, bordi appena più scuri: la conca */
+  background: radial-gradient(
+    ellipse 75% 70% at 50% 46%,
+    transparent 55%,
+    rgba(0, 0, 0, 0.18) 100%
+  );
+  pointer-events: none;
+}
+
+/* Safari, prima del primo play: la copertina resta visibile ma i clic
+   passano al player di YouTube che sta sotto (vedi needsTap in
+   Television.tsx). Il riquadro blu diventa un invito a toccare. */
+.tv[data-tap] .cover,
+.tv[data-tap] .box {
+  pointer-events: none;
+}
+
+/* la copertina: la miniatura del video con i colori del tubo e il televideo */
+.cover {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: #0d0b22;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* colori "da tubo": più saturi e contrastati, con la dominante viola */
+  filter: saturate(1.45) contrast(1.12) brightness(0.92);
+  -webkit-user-drag: none;
+}
+
+.tint {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 40%, transparent 35%, rgba(20, 0, 60, 0.55)),
+    linear-gradient(180deg, rgba(110, 50, 255, 0.38), rgba(60, 20, 160, 0.42));
+  mix-blend-mode: hard-light;
+  opacity: 0.75;
+}
+
+/* fascia verde con il titolo del video, testo pieno e spaziato */
+.bandTitle {
+  position: absolute;
+  right: 6%;
+  bottom: 12%;
+  left: 6%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* il titolo intero: se non sta su una riga va a capo e la fascia cresce
+     verso l'alto (resta ferma sul bordo basso) */
+  min-height: 9%;
+  padding: 0.35em 1.2em;
+  background: rgba(114, 228, 60, 0.9);
+  color: var(--tv-blue);
+  font-size: clamp(11px, 3.2cqw, 32px);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-wrap: balance; /* righe di lunghezza simile */
+  overflow-wrap: anywhere;
+  text-shadow:
+    -0.1cqw 0 rgba(255, 30, 70, 0.35),
+    0.1cqw 0 rgba(40, 170, 255, 0.35);
+}
+
+/* il riquadro blu al centro ("2.5", il canale, PAUSA) */
+.box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  padding: 0.12em 0.42em 0.1em;
+  border: 0.06em solid rgba(255, 255, 255, 0.85);
+  background: var(--tv-blue);
+  color: #ffffff;
+  font-size: clamp(22px, 8.5cqw, 86px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-shadow: var(--tv-fringe);
+  white-space: nowrap;
+  transform: translate(-50%, -62%);
+  pointer-events: none;
+}
+
+.box[data-long] {
+  font-size: clamp(16px, 5cqw, 52px);
+}
+
+/* "PAUSA": più piccolo, il video resta visibile */
+[data-phase='paused'] .box {
+  font-size: clamp(14px, 4cqw, 40px);
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+
+.external {
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  z-index: 5;
+  padding: 0.5em 0.9em;
+  background: #f2f2f2;
+  color: #111111;
+  font-size: clamp(10px, 1.8cqw, 16px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  transform: translateX(-50%);
+}
+
+/* neve: mentre il video carica o si cambia canale */
+.snow {
+  position: absolute;
+  inset: -50%;
+  z-index: 6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-color: rgba(20, 18, 40, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+[data-phase='loading'] .snow {
+  opacity: 1;
+  animation: tv-snow 0.18s steps(3) infinite;
+}
+
+/* la grana leggera della copertina e della pausa */
+[data-phase='idle'] .snow,
+[data-phase='error'] .snow,
+[data-phase='paused'] .snow {
+  background-color: transparent;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  animation: tv-snow 0.5s steps(4) infinite;
+}
+
+@keyframes tv-snow {
+  0% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(-7%, 4%);
+  }
+  66% {
+    transform: translate(5%, -6%);
+  }
+  100% {
+    transform: translate(-3%, 7%);
+  }
+}
+
+/* righe di scansione: sulla copertina e in pausa (mentre il video va, solo
+   sulle fasce del televideo, fuori dall'immagine) */
+.scan,
+.hudTop::after,
+.hudBottom::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.32) 0 1px,
+    transparent 1px 3px
+  );
+  pointer-events: none;
+}
+
+[data-phase='playing'] .scan {
+  opacity: 0;
+}
+
+[data-phase='loading'] .scan {
+  opacity: 0.6;
+}
+
+/* accensione del tubo: una riga bianca che si allarga e poi si apre */
+.power {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: #ffffff;
+  pointer-events: none;
+  animation: tv-power 0.7s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+}
+
+@keyframes tv-power {
+  0% {
+    clip-path: inset(49.6% 50% 49.6% 50%);
+    opacity: 1;
+  }
+  30% {
+    clip-path: inset(49.6% 0 49.6% 0);
+    opacity: 1;
+  }
+  60% {
+    clip-path: inset(0 0 0 0);
+    opacity: 0.85;
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 0;
+  }
+}
+
+/* ---------- In basso: avanzamento e telecomando ---------- */
+
+.hudBottom {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 1cqw, 10px);
+  padding: clamp(2px, 0.6cqw, 6px) clamp(16px, 5cqw, 52px)
+    clamp(12px, 3cqw, 30px);
+}
+
+/* barra sottile come su TikTok: più spessa al passaggio e trascinando */
+.seek {
+  position: relative;
+  z-index: 8; /* sopra le righe di scansione: si deve poter prendere */
+  display: flex;
+  align-items: center;
+  height: clamp(16px, 2.6cqw, 26px);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.rail {
+  position: relative;
+  width: 100%;
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.22);
+  transition: height 0.15s ease;
+}
+
+.fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--p) * 100%);
+  border-radius: inherit;
+  background: #ffffff;
+}
+
+.knob {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--p) * 100%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.15s ease;
+}
+
+.seek:hover .rail,
+.seek[data-dragging] .rail,
+.fsSeek:hover .rail,
+.fsSeek[data-dragging] .rail {
+  height: 6px;
+}
+
+.seek:hover .knob,
+.seek[data-dragging] .knob,
+.fsSeek:hover .knob,
+.fsSeek[data-dragging] .knob {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.seek[data-dragging] .fill,
+.fsSeek[data-dragging] .fill {
+  background: var(--tv-yellow);
+}
+
+[data-phase='idle'] .seek,
+[data-phase='error'] .seek {
+  cursor: default;
+}
+
+[data-phase='idle'] .knob,
+[data-phase='error'] .knob {
+  display: none;
+}
+
+/* la fascia colorata: la stessa striscia "- + YOU TU" del sito (.g-strip in
+   global.css), stessi colori e stesse scritte, sottile come la barra di un
+   player */
+.keys {
+  position: relative;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  height: clamp(14px, 2cqw, 18px);
+}
+
+.key {
+  --track: 0.4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  margin: 0;
+  /* lo spazio dopo l'ultima lettera si compensa a sinistra: scritta centrata */
+  padding: 0 0 0 var(--track);
+  border: 0;
+  border-radius: 0;
+  background: var(--key);
+  color: var(--key-ink);
+  font-family: var(--notion-font, var(--tv-font));
+  font-size: clamp(7px, 1.05cqw, 10px);
+  font-weight: 700;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+
+.key svg {
+  width: 1.3em;
+  height: 1.3em;
+  margin-left: calc(-1 * var(--track)); /* le icone non hanno spaziatura */
+  fill: currentColor;
+}
+
+/* bianco su rosso e blu, nero su verde e arancio, come nella striscia */
+.key[data-color='red'] {
+  --key: var(--g-red, #b3121c);
+  --key-ink: #ffffff;
+}
+
+.key[data-color='green'] {
+  --key: var(--g-green, #3a9b5c);
+  --key-ink: #000000;
+}
+
+.key[data-color='orange'] {
+  --key: var(--g-orange, #ee6a1f);
+  --key-ink: #000000;
+}
+
+.key[data-color='blue'] {
+  --key: var(--g-blue, #1428c8);
+  --key-ink: #ffffff;
+}
+
+.key[data-color='blue'] svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .key:hover {
+    filter: brightness(1.15);
+  }
+}
+
+.key:active {
+  filter: brightness(0.85);
+}
+
+/* effetto catodico sulla fascia: come sul tubo, righe di scansione, un
+   leggero bagliore dei colori e le scritte appena sbavate in rosso e blu */
+.keys {
+  box-shadow: 0 0 clamp(4px, 1cqw, 10px) rgba(255, 255, 255, 0.08);
+}
+
+.key {
+  position: relative;
+  text-shadow: var(--tv-fringe);
+  box-shadow:
+    0 0 clamp(4px, 0.9cqw, 9px) color-mix(in srgb, var(--key) 55%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.key svg {
+  filter: drop-shadow(-0.1cqw 0 rgba(255, 30, 70, 0.5))
+    drop-shadow(0.1cqw 0 rgba(40, 170, 255, 0.5));
+}
+
+.key::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.28) 0 1px,
+    transparent 1px 3px
+  );
+  pointer-events: none;
+}
+
+.key:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -2px;
+}
+
+/* ---------- Il vetro del tubo ---------- */
+
+.glass {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  border-radius: inherit;
+  /* riflesso morbido in alto a sinistra, bordi appena più scuri */
+  background:
+    radial-gradient(
+      ellipse 58% 30% at 28% 8%,
+      rgba(255, 255, 255, 0.07),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 120% 110% at 50% 50%,
+      transparent 70%,
+      rgba(0, 0, 0, 0.35) 100%
+    );
+  pointer-events: none;
+}
+
+/* ---------- Schermo intero: solo il video ----------
+   Niente televisore: via righe, grana, vetro, copertina e riquadri.
+   Schermo intero del browser (:fullscreen) oppure, su iPhone, il video che
+   riempie la finestra (data-fullscreen='window'). */
+
+.picture:fullscreen {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  background: #000000;
+}
+
+.tv[data-fullscreen='window'] {
+  z-index: 1001;
+}
+
+/* a tutto schermo: niente alone né filo di luce del riquadro */
+.tv[data-fullscreen] .halo,
+.tv[data-fullscreen]::after {
+  display: none;
+}
+
+/* il video pieno: niente margini, angoli né incavo */
+.picture:fullscreen,
+.tv[data-fullscreen='window'] .picture {
+  margin: 0;
+  border-radius: 0;
+}
+
+.picture:fullscreen::after,
+.tv[data-fullscreen] .picture::after {
+  display: none;
+}
+
+.tv[data-fullscreen='window'] .picture {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  aspect-ratio: auto;
+  background: #000000;
+}
+
+.tv[data-fullscreen] .scan,
+.tv[data-fullscreen] .snow,
+.tv[data-fullscreen] .power,
+.tv[data-fullscreen] .box,
+.tv[data-fullscreen] .tint,
+.tv[data-fullscreen] .bandTitle {
+  display: none;
+}
+
+.tv[data-fullscreen] .thumb {
+  filter: none;
+  object-fit: contain;
+}
+
+.tv[data-fullscreen] .cover {
+  background: #000000;
+}
+
+/* a schermo intero, in fondo: la barra sottile per scorrere il video.
+   Zona cliccabile bassa (16 px), sotto la fila dei pulsanti di YouTube
+   (copia link, Altri video, logo): non li copre, restano cliccabili */
+.fsSeek {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  height: calc(16px + env(safe-area-inset-bottom));
+  padding: 0 max(20px, env(safe-area-inset-right))
+    calc(6px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* la crocetta per uscire */
+.exit {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(20, 22, 30, 0.5);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #ffffff;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.2s ease;
+}
+
+.exit:hover,
+.exit:focus-visible {
+  opacity: 1;
+}
+
+.exit svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail,
+  .knob,
+  .key,
+  .haloImage {
+    transition: none;
+  }
+
+  .snow,
+  [data-phase] .snow {
+    animation: none;
+  }
+
+  .power {
+    display: none;
+  }
+}

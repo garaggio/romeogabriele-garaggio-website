@@ -13,6 +13,10 @@
   --sb-track: #d0d0d0;
   --sb-bevel: inset 1px 1px 0 var(--sb-light), inset -1px -1px 0 var(--sb-dark);
   --sb-pad: 12px;
+  /* altezza dell'area visiva e margine intorno alla foto (anche i video
+     ne hanno bisogno per non uscire) */
+  --sb-stage-h: clamp(260px, 58vh, 600px);
+  --sb-inspect-pad: clamp(20px, 4vw, 44px);
 
   position: relative;
   width: 100%;
@@ -123,7 +127,7 @@
   min-height: 0;
   align-items: center;
   justify-content: center;
-  height: clamp(260px, 58vh, 600px);
+  height: var(--sb-stage-h);
   /* il margine intorno alla foto sta nel pulsante dello zoom (.inspect):
      così tutta l'area grigia attiva l'ingrandimento */
   padding: 0;
@@ -147,7 +151,7 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
-  padding: clamp(20px, 4vw, 44px);
+  padding: var(--sb-inspect-pad);
   border: 0;
   background: none;
   cursor: zoom-in;
@@ -169,6 +173,46 @@
   background: #ffffff;
   object-fit: contain;
   -webkit-user-drag: none;
+}
+
+/* video: cornice con l'icona ▶ (stile in global.css, .g-gallery-play) */
+.media {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.video {
+  /* prima che arrivino anteprima e misure il video non ha dimensioni: un
+     riquadro minimo, così si vede (e si clicca) subito */
+  min-width: 160px;
+  min-height: min(240px, calc(var(--sb-stage-h) - 2 * var(--sb-inspect-pad)));
+  max-height: calc(var(--sb-stage-h) - 2 * var(--sb-inspect-pad));
+  background: #111111;
+}
+
+/* tonda anche nella versione classica (lì tutto è squadrato) */
+.window .play {
+  bottom: 8px;
+  left: 8px;
+  border-radius: 50%;
+}
+
+/* in qualsiasi punto del video l'icona si accende di giallo: col mouse
+   sopra, al tocco e con il riquadro selezionato dalla tastiera */
+.stage[data-zoomable] .media:active .play,
+.inspect:focus-visible .play {
+  background: var(--g-yellow, #ffd83a);
+  color: #111111;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stage[data-zoomable] .media:hover .play {
+    background: var(--g-yellow, #ffd83a);
+    color: #111111;
+  }
 }
 
 /* ---------- Fascia dei metadati ---------- */
@@ -402,19 +446,13 @@
 @media (max-width: 640px) {
   .window {
     --sb-pad: 10px;
+    --sb-stage-h: clamp(220px, 78vw, 420px);
+    --sb-inspect-pad: 16px;
     margin: 1.25rem 0;
   }
 
   .titlebar {
     padding: 0 28px;
-  }
-
-  .stage {
-    height: clamp(220px, 78vw, 420px);
-  }
-
-  .inspect {
-    padding: 16px;
   }
 
   /* i metadati vanno a capo in ordine; il contatore resta in alto a destra */
@@ -519,17 +557,25 @@
 }
 
 /* cambio di foto: la nuova entra dal lato verso cui si sfoglia, con una
-   breve dissolvenza (la prima foto compare solo in dissolvenza) */
-.modern .photo {
+   breve dissolvenza (la prima foto compare solo in dissolvenza).
+   Per i video si muove la cornice, con l'icona ▶ insieme. */
+.modern .photo,
+.modern .media {
   animation: sb-fade 0.28s ease-out;
 }
 
-.modern .photo[data-dir='1'] {
+.modern .photo[data-dir='1'],
+.modern .media[data-dir='1'] {
   animation: sb-in-next 0.32s cubic-bezier(0.2, 0, 0.2, 1);
 }
 
-.modern .photo[data-dir='-1'] {
+.modern .photo[data-dir='-1'],
+.modern .media[data-dir='-1'] {
   animation: sb-in-prev 0.32s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.modern .media .photo {
+  animation: none;
 }
 
 @keyframes sb-in-next {
@@ -588,6 +634,8 @@
 @media (prefers-reduced-motion: reduce) {
   .modern .photo,
   .modern .photo[data-dir],
+  .modern .media,
+  .modern .media[data-dir],
   .modern .closeBox {
     animation: none;
     transition: none;

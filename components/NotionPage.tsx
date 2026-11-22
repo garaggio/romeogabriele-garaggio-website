@@ -28,9 +28,15 @@ import { getAppRows } from '@/lib/appstore'
 import { getLockScreens } from '@/lib/lockscreen'
 import { mapImageUrl } from '@/lib/map-image-url'
 import { mapPageUrl } from '@/lib/map-page-url'
-import { getGalleryDownloads, getScrapbooks } from '@/lib/scrapbook'
+import {
+  getGalleryDownloads,
+  getScrapbooks,
+  getVideoPosters
+} from '@/lib/scrapbook'
 import { lockPageScroll } from '@/lib/scroll-lock'
+import { isVideoZoomOpen, openVideoZoom } from '@/lib/video-zoom'
 import { searchNotion } from '@/lib/search-notion'
+import { getTelevisions } from '@/lib/television'
 import { useDarkMode } from '@/lib/use-dark-mode'
 import { Footer } from './Footer'
 import { NotionPageHeader } from './NotionPageHeader'
@@ -409,6 +415,9 @@ export function NotionPage({
   // - ingrandimento: finché la foto è aperta la pagina non scorre
   React.useEffect(() => {
     const cleanups: Array<() => void> = []
+    // video ingranditi: si chiudono se si cambia pagina
+    const cleanupsZoom: Array<() => void> = []
+    const posters = getVideoPosters(recordMap)
 
     for (const gallery of document.querySelectorAll<HTMLElement>(
       '.notion-gallery_co'
@@ -509,6 +518,7 @@ export function NotionPage({
         if (event.metaKey || event.ctrlKey || event.altKey) return
         if (!hovering && document.activeElement !== track) return
         if (document.querySelector('.medium-zoom-image--opened')) return
+        if (isVideoZoomOpen()) return
         const el = event.target as HTMLElement | null
         if (el?.closest('input, textarea, select, [contenteditable="true"]')) {
           return
@@ -530,6 +540,59 @@ export function NotionPage({
       // le foto che si caricano allungano la striscia
       for (const img of track.querySelectorAll('img')) {
         img.addEventListener('load', update)
+      }
+
+      // Video (caricati in Notion dentro la galleria): fermi, senza comandi,
+      // con l'icona ▶ in basso. Al clic si ingrandiscono e partono, al
+      // secondo clic si fermano e tornano al loro posto (lib/video-zoom.ts).
+      for (const video of track.querySelectorAll<HTMLVideoElement>(
+        ':scope > figure video'
+      )) {
+        const frame = video.parentElement
+        if (!frame) continue
+        video.controls = false
+        video.removeAttribute('controls')
+        video.muted = true
+        video.playsInline = true
+        video.preload = 'metadata'
+        // l'anteprima di Notion: subito visibile, con le misure giuste
+        const blockId = video
+          .closest('figure')
+          ?.className.match(/notion-block-([\da-f]{32})/)?.[1]
+        const poster = blockId && posters[blockId]
+        if (poster) video.poster = poster
+        video.disablePictureInPicture = true
+        video.setAttribute('controlslist', 'nodownload noremoteplayback')
+        // "#t=0.1": anche Safari su iPhone mostra il primo fotogramma
+        if (video.src && !video.src.includes('#')) video.src += '#t=0.1'
+        video.tabIndex = 0
+        video.setAttribute('role', 'button')
+        video.setAttribute('aria-label', 'Riproduci il video')
+
+        const badge = document.createElement('span')
+        badge.className = 'g-gallery-play'
+        badge.setAttribute('aria-hidden', 'true')
+        badge.innerHTML =
+          '<svg viewBox="0 0 16 16"><path d="M5.5 3.6v8.8a.6.6 0 0 0 .9.5l7-4.4a.6.6 0 0 0 0-1L6.4 3.1a.6.6 0 0 0-.9.5z"/></svg>'
+        frame.append(badge)
+
+        const open = () => cleanupsZoom.push(openVideoZoom(video))
+        const onKeyOpen = (event: KeyboardEvent) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return
+          event.preventDefault()
+          open()
+        }
+        video.addEventListener('click', open)
+        video.addEventListener('keydown', onKeyOpen)
+        // le misure arrivano con i metadati: la striscia si allunga
+        video.addEventListener('loadedmetadata', update)
+
+        cleanups.push(() => {
+          video.removeEventListener('click', open)
+          video.removeEventListener('keydown', onKeyOpen)
+          video.removeEventListener('loadedmetadata', update)
+          badge.remove()
+        })
       }
 
       cleanups.push(() => {
@@ -563,6 +626,7 @@ export function NotionPage({
 
     return () => {
       for (const cleanup of cleanups) cleanup()
+      for (const close of cleanupsZoom) close()
       document.removeEventListener('medium-zoom:open', lock, true)
       document.removeEventListener('medium-zoom:closed', unlock, true)
       unlock()
@@ -582,7 +646,7 @@ export function NotionPage({
         `.notion-gallery_co figure.notion-block-${blockId}`
       )
       // il riquadro che contiene la foto (prima della didascalia)
-      const frame = figure?.querySelector('img')?.parentElement
+      const frame = figure?.querySelector('img, video')?.parentElement
       if (!frame) continue
       const link = document.createElement('a')
       link.className = 'g-gallery-dl'
@@ -592,7 +656,7 @@ export function NotionPage({
       link.title = 'Scarica'
       link.innerHTML =
         '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10"/></svg>'
-      // il clic scarica e basta: niente ingrandimento della foto
+      // il clic scarica e basta: niente ingrandimento della foto o del video
       link.addEventListener('click', (event) => event.stopPropagation())
       frame.append(link)
       buttons.push(link)
@@ -617,7 +681,12 @@ export function NotionPage({
     }
 
     const blockImageMenu = (event: MouseEvent) => {
-      if (event.target instanceof HTMLImageElement) event.preventDefault()
+      if (
+        event.target instanceof HTMLImageElement ||
+        event.target instanceof HTMLVideoElement
+      ) {
+        event.preventDefault()
+      }
     }
 
     const blockImageDrag = (event: DragEvent) => {
@@ -952,7 +1021,8 @@ export function NotionPage({
     () => ({
       scrapbooks: byBlockId(getScrapbooks(recordMap)),
       lockScreens: byBlockId(getLockScreens(recordMap, siteMapPageUrl)),
-      appRows: byBlockId(getAppRows(recordMap))
+      appRows: byBlockId(getAppRows(recordMap)),
+      televisions: byBlockId(getTelevisions(recordMap))
     }),
     [recordMap, siteMapPageUrl]
   )

@@ -20,6 +20,7 @@ import {
 import { getTweetsMap } from './get-tweets'
 import { notion } from './notion-api'
 import { getPreviewImageMap } from './preview-images'
+import { youtubeIdFrom, youtubeStartFrom } from './television'
 
 const getNavigationLinkPages = pMemoize(
   async (): Promise<ExtendedRecordMap[]> => {
@@ -110,11 +111,15 @@ export async function getPage(pageId: string): Promise<ExtendedRecordMap> {
 
   hideSecretCallouts(recordMap)
 
+  await markYouTubeLinks(recordMap)
+
   applyBookmarkCaptions(recordMap)
 
   markPhotoGalleries(recordMap)
 
   markScrapbooks(recordMap)
+
+  await markTelevisions(recordMap)
 
   markContextMenus(recordMap)
 
@@ -141,7 +146,12 @@ const textOfBlock = (recordMap: ExtendedRecordMap, id: string) => {
 // AppRow), che così arriva già disegnato nell'HTML del server invece di
 // comparire dopo l'avvio del JavaScript. Il contenuto originale resta in
 // format.g_content (il Raccoglitore ci legge le foto).
-const customCallouts = new Set(['scrapbook', 'lockscreen', 'appstore'])
+const customCallouts = new Set([
+  'scrapbook',
+  'lockscreen',
+  'appstore',
+  'television'
+])
 
 function embedCustomCallouts(recordMap: ExtendedRecordMap) {
   for (const entry of Object.values(recordMap.block)) {
@@ -416,6 +426,254 @@ function markScrapbooks(recordMap: ExtendedRecordMap) {
       return text.trim() !== ''
     })
   }
+}
+
+// Televisore 📺 (components/Television.tsx): callout con icona 📺, o "📺" a
+// inizio prima riga, e dentro i link di YouTube (video, segnalibri o link nel
+// testo). Ogni link è un canale, al massimo dieci. "📺 2.5": il testo dopo il
+// segno va nel riquadro blu. I titoli dei video li chiediamo a YouTube.
+const tvIcons = ['📺']
+const maxChannels = 10
+
+// link di YouTube in un testo di Notion: link veri e indirizzi scritti
+const linksInRichText = (rich: any[] | undefined): string[] => {
+  const links: string[] = []
+  for (const [text, decorations] of rich ?? []) {
+    for (const d of decorations ?? []) {
+      if (d?.[0] === 'a' && typeof d[1] === 'string') links.push(d[1])
+    }
+    if (typeof text === 'string') {
+      links.push(...(text.match(/https?:\/\/\S+/g) ?? []))
+    }
+  }
+  return links
+}
+
+// titoli dei video (oEmbed di YouTube), tenuti in memoria tra le richieste
+const youtubeTitles = new Map<string, Promise<string | undefined>>()
+const youtubeTitle = (id: string) => {
+  let title = youtubeTitles.get(id)
+  if (!title) {
+    title = fetch(
+      `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(
+        `https://www.youtube.com/watch?v=${id}`
+      )}`,
+      { signal: AbortSignal.timeout(4000) }
+    )
+      .then(async (res) =>
+        res.ok ? ((await res.json()) as { title?: string }).title : undefined
+      )
+      .catch(() => undefined)
+      .then((value) => {
+        // se YouTube non risponde si riprova alla richiesta successiva
+        if (!value) youtubeTitles.delete(id)
+        return value
+      })
+    youtubeTitles.set(id, title)
+  }
+  return title
+}
+
+// Un singolo link di YouTube: l'aspetto lo sceglie il segno all'inizio della
+// didascalia (come 🛍️ per il merch).
+//   Segnalibro:            niente o 👁️ → finestra "Anteprima" del Mac
+//                          📺          → televisore
+//   Video incorporato:     niente      → player di YouTube normale
+//                          👁️          → finestra "Anteprima" del Mac
+//                          📺          → televisore
+// "📺 2.5": il testo dopo il segno va nel riquadro blu del televisore.
+// "👁️ testo": il testo va accanto alla copertina (vedi applyBookmarkCaptions).
+// Copertina del video: quella grande (1280 px) non esiste per tutti i video
+// e al suo posto YouTube risponde 404 (errore rosso nella console). Il server
+// controlla una volta quale c'è e la pagina chiede solo quella giusta.
+const youtubeThumbnails = new Map<string, Promise<string>>()
+const youtubeThumbnail = (id: string) => {
+  let thumbnail = youtubeThumbnails.get(id)
+  if (!thumbnail) {
+    const large = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
+    const medium = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
+    thumbnail = fetch(large, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(4000)
+    })
+      .then((res) => (res.ok ? large : medium))
+      .catch(() => {
+        youtubeThumbnails.delete(id) // si riprova alla richiesta successiva
+        return medium
+      })
+    youtubeThumbnails.set(id, thumbnail)
+  }
+  return thumbnail
+}
+
+type TvVideo = {
+  id: string
+  title?: string
+  start?: number
+  thumbnail?: string
+}
+
+// titolo (se manca) e copertina giusta di un video del televisore
+const completeVideo = async (video: TvVideo) => {
+  const [title, thumbnail] = await Promise.all([
+    video.title ? video.title : youtubeTitle(video.id),
+    youtubeThumbnail(video.id)
+  ])
+  if (title) video.title = title
+  video.thumbnail = thumbnail
+}
+
+async function markYouTubeLinks(recordMap: ExtendedRecordMap) {
+  const pending: Array<Promise<void>> = []
+
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (block?.type !== 'bookmark' && block?.type !== 'video') continue
+
+    const link: string | undefined =
+      block.type === 'bookmark'
+        ? block.properties?.link?.[0]?.[0]
+        : (block.format?.display_source ?? block.properties?.source?.[0]?.[0])
+    const id = link ? youtubeIdFrom(link) : undefined
+    if (!link || !id) continue
+
+    const caption = getTextContent(block.properties?.caption).trim()
+    const start = youtubeStartFrom(link)
+
+    // 📺 → televisore con un solo canale
+    const tvIcon = tvIcons.find((i) => caption.startsWith(i))
+    if (tvIcon) {
+      const video: TvVideo = {
+        id,
+        start,
+        title:
+          block.type === 'bookmark'
+            ? getTextContent(block.properties?.title).trim() || undefined
+            : undefined
+      }
+      block.type = 'callout'
+      block.format = {
+        ...block.format,
+        block_color: 'television',
+        television: {
+          label: caption.slice(tvIcon.length).trim() || undefined,
+          videos: [video]
+        }
+      }
+      block.properties = {}
+      block.content = []
+      pending.push(completeVideo(video))
+      continue
+    }
+
+    // 👁️ su un video incorporato → diventa un segnalibro: finestra Anteprima
+    // con la copertina del video, il titolo e il testo della didascalia
+    if (
+      block.type === 'video' &&
+      previewIcons.some((i) => caption.startsWith(i))
+    ) {
+      const watch = new URL('https://www.youtube.com/watch')
+      watch.searchParams.set('v', id)
+      if (start) watch.searchParams.set('t', `${start}s`)
+      block.type = 'bookmark'
+      block.properties = {
+        link: [[watch.toString()]],
+        title: [['YouTube']],
+        description: [['YouTube']],
+        caption: block.properties?.caption ?? []
+      }
+      block.format = {
+        bookmark_cover: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+        bookmark_icon: 'https://www.youtube.com/favicon.ico'
+      }
+      const properties = block.properties
+      pending.push(
+        youtubeTitle(id).then((title) => {
+          if (title) properties.title = [[title]]
+        })
+      )
+    }
+  }
+
+  await Promise.all(pending)
+}
+
+async function markTelevisions(recordMap: ExtendedRecordMap) {
+  const valueOf = (id: string) => blockValue(recordMap, id)
+  const pending: Array<Promise<void>> = []
+
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (block?.type !== 'callout') continue
+
+    const content: string[] = block.content ?? []
+    const first = content[0] ? valueOf(content[0]) : undefined
+    const ownTitle = getTextContent(block.properties?.title).trim()
+    const firstLine =
+      first?.type === 'text'
+        ? getTextContent(first.properties?.title).trim()
+        : ''
+    const fromIcon = tvIcons.includes(block.format?.page_icon)
+    const header = [ownTitle, firstLine].find((t) =>
+      tvIcons.some((i) => t.startsWith(i))
+    )
+    if (!fromIcon && header === undefined) continue
+
+    // tutti i link del callout, nell'ordine in cui compaiono
+    const links: Array<{ url: string; title?: string }> = []
+    for (const url of linksInRichText(block.properties?.title)) {
+      links.push({ url })
+    }
+    for (const id of content) {
+      const child = valueOf(id)
+      if (!child) continue
+      const source =
+        child.format?.display_source ?? child.properties?.source?.[0]?.[0]
+      if (['video', 'embed'].includes(child.type) && source) {
+        links.push({ url: source })
+      } else if (child.type === 'bookmark') {
+        const url = child.properties?.link?.[0]?.[0]
+        if (url) {
+          links.push({
+            url,
+            title: getTextContent(child.properties?.title).trim() || undefined
+          })
+        }
+      } else {
+        for (const url of linksInRichText(child.properties?.title)) {
+          links.push({ url })
+        }
+      }
+    }
+
+    const videos: TvVideo[] = []
+    for (const { url, title } of links) {
+      const id = youtubeIdFrom(url)
+      if (!id || videos.some((v) => v.id === id)) continue
+      if (videos.length >= maxChannels) break
+      videos.push({ id, title, start: youtubeStartFrom(url) })
+    }
+    // senza video resta un callout qualsiasi
+    if (!videos.length) continue
+
+    const icon = tvIcons.find((i) => header?.startsWith(i)) ?? ''
+    const label = header
+      ?.slice(icon.length)
+      .replaceAll(/https?:\/\/\S+/g, '')
+      .trim()
+
+    block.format = {
+      ...block.format,
+      block_color: 'television',
+      television: { label: label || undefined, videos }
+    }
+    delete block.format.page_icon
+    if (block.properties) delete block.properties.title
+
+    for (const video of videos) pending.push(completeVideo(video))
+  }
+
+  await Promise.all(pending)
 }
 
 // Menu contestuale del Mac (tasto destro), a scelta: i database restano come

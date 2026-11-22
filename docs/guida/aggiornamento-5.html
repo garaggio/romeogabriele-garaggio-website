@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Guida Notion · Aggiornamento 5 (televisore YouTube)</title>
+    <!-- Quinta pagina di aggiornamento della guida "Come scrivere su Notion":
+     il televisore 📺 per i video di YouTube.
+     Si stampa in PDF con Chrome e si aggiunge in fondo alla guida. -->
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 17mm 20mm;
+      }
+      :root {
+        --blue: #0a1a9e;
+        --yellow: #ffd83a;
+        --red: #b3121c;
+        --ink: #17181c;
+        --muted: #5b5e69;
+        --line: #dfe1e8;
+        --soft: #f4f5f9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body {
+        margin: 0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        font-size: 10.5pt;
+        line-height: 1.5;
+      }
+      h2 {
+        font-size: 17pt;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin: 0 0 3mm;
+        padding-top: 2mm;
+        color: var(--blue);
+        break-after: avoid;
+      }
+      h2 .n {
+        display: inline-block;
+        min-width: 9mm;
+        color: var(--ink);
+        background: var(--yellow);
+        text-align: center;
+        border-radius: 2mm;
+        margin-right: 3mm;
+        font-size: 12pt;
+        padding: 0.6mm 1.5mm;
+        vertical-align: 2pt;
+      }
+      h3 {
+        font-size: 11.5pt;
+        margin: 5mm 0 1.5mm;
+        break-after: avoid;
+        color: var(--ink);
+      }
+      p {
+        margin: 0 0 2.5mm;
+      }
+      section {
+        margin-bottom: 7mm;
+      }
+      ul {
+        margin: 0 0 3mm;
+        padding-left: 5mm;
+      }
+      li {
+        margin-bottom: 1mm;
+      }
+      .k {
+        font-family: Menlo, monospace;
+        font-size: 9pt;
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 1.2mm;
+        padding: 0.2mm 1.3mm;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .tip {
+        border-left: 1.2mm solid var(--yellow);
+        background: #fffbea;
+        padding: 2.5mm 4mm;
+        border-radius: 0 2mm 2mm 0;
+        margin: 3mm 0;
+        break-inside: avoid;
+      }
+      .tip b:first-child {
+        display: block;
+        font-size: 8pt;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 0.5mm;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9.5pt;
+        margin: 2mm 0 4mm;
+      }
+      th {
+        text-align: left;
+        font-size: 7.5pt;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1.5px solid var(--ink);
+        padding: 1.5mm 2mm;
+      }
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 2mm;
+        vertical-align: top;
+      }
+      tr {
+        break-inside: avoid;
+      }
+      td:first-child {
+        font-weight: 700;
+        width: 34%;
+      }
+      .where {
+        display: block;
+        margin-top: 0.8mm;
+        font-size: 8.5pt;
+        color: var(--muted);
+      }
+      .app {
+        display: grid;
+        grid-template-columns: 14mm 1fr auto;
+        gap: 4mm;
+        align-items: center;
+        padding: 3mm 4mm;
+        border-radius: 3mm;
+        background: #0d1670;
+        color: #fff;
+        margin: 2mm 0 1mm;
+        break-inside: avoid;
+      }
+      .app .ic {
+        width: 14mm;
+        height: 14mm;
+        border-radius: 22.5%;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        color: #1428c8;
+        font-weight: 800;
+        font-size: 13pt;
+      }
+      .app b {
+        display: block;
+        font-size: 11pt;
+      }
+      .app small {
+        color: rgba(235, 235, 245, 0.6);
+        font-size: 9pt;
+      }
+      .app .get {
+        background: #f2f2f7;
+        color: #1428c8;
+        font-weight: 700;
+        border-radius: 99px;
+        padding: 1.5mm 4.5mm;
+        font-size: 9.5pt;
+        text-align: center;
+      }
+      .app .nt {
+        display: block;
+        text-align: center;
+        color: rgba(235, 235, 245, 0.55);
+        font-size: 6.5pt;
+        margin-top: 1mm;
+      }
+      .phone {
+        width: 52mm;
+        aspect-ratio: 9 / 18.5;
+        border-radius: 9mm;
+        padding: 0 3mm;
+        margin: 0 auto;
+        background:
+          radial-gradient(120% 70% at 20% 10%, #6cbcec, transparent 55%),
+          radial-gradient(120% 80% at 90% 85%, #ffd83a, transparent 45%),
+          linear-gradient(160deg, #1428c8, #050d5c);
+        box-shadow: 0 0 0 1.6mm #0b0b0f;
+        color: #fff;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .phone .isl {
+        position: absolute;
+        top: 2mm;
+        left: 50%;
+        width: 15mm;
+        height: 4.5mm;
+        margin-left: -7.5mm;
+        background: #000;
+        border-radius: 9mm;
+      }
+      .phone .lb {
+        margin-top: 11mm;
+        font-size: 8pt;
+        font-weight: 600;
+      }
+      .phone .bg {
+        font-size: 24pt;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .phone .nt {
+        margin-top: auto;
+        display: grid;
+        grid-template-columns: 6mm 1fr;
+        gap: 2mm;
+        align-items: center;
+        text-align: left;
+        background: rgba(28, 28, 32, 0.5);
+        border-radius: 3.5mm;
+        padding: 2mm;
+        font-size: 6pt;
+      }
+      .phone .nt + .nt {
+        margin-top: 1.5mm;
+      }
+      .phone .ic {
+        width: 6mm;
+        height: 6mm;
+        border-radius: 1.4mm;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 9pt;
+      }
+      .phone .hb {
+        width: 16mm;
+        height: 0.9mm;
+        border-radius: 1mm;
+        background: #fff;
+        margin: 6mm auto 2mm;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 48mm;
+        gap: 6mm;
+        align-items: start;
+      }
+      .warn {
+        border-left: 1.2mm solid #b3121c;
+        background: #fdf0f0;
+        padding: 2.5mm 4mm;
+        border-radius: 0 2mm 2mm 0;
+        margin: 3mm 0;
+        break-inside: avoid;
+      }
+      .warn b:first-child {
+        display: block;
+        font-size: 8pt;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 0.5mm;
+      }
+      .mk {
+        display: inline-block;
+        background: #1b1b1d;
+        border-radius: 1mm;
+        padding: 0 0.6mm;
+        line-height: 1.25;
+      }
+      .render {
+        width: 46mm;
+        border-radius: 3mm;
+        justify-self: end;
+      }
+      .page-break {
+        break-before: page;
+      }
+      /* riepilogo: tabella più compatta, così sta in una pagina */
+      .summary table {
+        font-size: 9pt;
+      }
+      .summary td {
+        padding: 1.3mm 2mm;
+      }
+          /* aggiornamento 5: le etichette in codice non si spezzano a metà */
+      .k {
+        white-space: nowrap;
+      }
+      /* aggiornamento 5: immagine del televisore più grande */
+      .render.wide {
+        width: 62mm;
+      }
+      .cols.wide {
+        grid-template-columns: 1fr 62mm;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h2><span class="n">29</span>Televisore 📺: i video di YouTube</h2>
+      <p>
+        Un televisore con la grafica di <i>youtuyoutuyou</i> (televideo su un
+        vecchio schermo catodico) che riproduce i video di YouTube sul sito.
+        Fino al clic si vede solo la copertina: la pagina resta leggera.
+      </p>
+      <div class="cols wide">
+        <div>
+          <h3>Più video in un televisore: il callout 📺</h3>
+          <ul>
+            <li>
+              Crea un callout con icona <span class="k">📺</span> (oppure con la
+              prima riga che inizia con <span class="k">📺</span>).
+            </li>
+            <li>
+              Dentro metti i link di YouTube: incollati come <b>video</b>, come
+              <b>segnalibro</b> o come semplice <b>link nel testo</b>. Vanno
+              bene tutti i formati (youtube.com, youtu.be, Shorts).
+            </li>
+            <li>
+              Ogni link è un <b>canale</b>, da 01 a 10, nell'ordine in cui li
+              scrivi (al massimo dieci).
+            </li>
+            <li>
+              Il <b>titolo</b> lo prende il sito da YouTube. Per far partire un
+              video da un punto preciso aggiungi al link il tempo:
+              <span class="k">?t=90</span> o <span class="k">?t=1m30s</span>.
+            </li>
+          </ul>
+        </div>
+        <img
+          class="render wide"
+          src="img/televisore.png"
+          alt="Il televisore sul sito: canali, titolo e fascia colorata"
+        />
+      </div>
+
+      <h3>Un solo video: decide la didascalia</h3>
+      <p>
+        Per un singolo link di YouTube scegli l'aspetto con il segno all'inizio
+        della <b>didascalia</b>, come 🛍️ per il merch (sezione 19).
+      </p>
+      <table>
+        <tr>
+          <th>In Notion</th>
+          <th>Didascalia</th>
+          <th>Sul sito</th>
+        </tr>
+        <tr>
+          <td>Segnalibro di YouTube</td>
+          <td>niente, oppure <span class="k">👁️ testo</span></td>
+          <td>Anteprima in stile Quick Look (come oggi)</td>
+        </tr>
+        <tr>
+          <td>Segnalibro di YouTube</td>
+          <td><span class="k">📺</span> oppure <span class="k">📺 2.5</span></td>
+          <td>Televisore</td>
+        </tr>
+        <tr>
+          <td>Video incorporato</td>
+          <td>niente</td>
+          <td>Player normale di YouTube (come oggi)</td>
+        </tr>
+        <tr>
+          <td>Video incorporato</td>
+          <td><span class="k">👁️ testo</span></td>
+          <td>Anteprima con copertina e titolo del video</td>
+        </tr>
+        <tr>
+          <td>Video incorporato</td>
+          <td><span class="k">📺</span> oppure <span class="k">📺 2.5</span></td>
+          <td>Televisore</td>
+        </tr>
+      </table>
+      <p class="muted">
+        Il testo dopo <span class="k">📺</span> va nel riquadro blu al centro
+        (per esempio «2.5»). Con più canali nel riquadro c'è sempre il numero
+        del canale.
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="n">30</span>Televisore: come si usa sul sito</h2>
+      <ul>
+        <li>
+          <b>Copertina:</b> la copertina del video con l'effetto catodico, il
+          numero del canale e il titolo intero (se è lungo va a capo). Il video
+          parte <b>solo al clic</b> (o al tocco): non parte mai da solo.
+        </li>
+        <li>
+          <b>Cambiare canale:</b> con i numeri in alto, oppure scorrendo di lato
+          con il trackpad o con il dito (un video per gesto, come nella galleria
+          a finestra). Ogni volta si torna alla copertina del canale e si
+          aspetta il clic. Anche quando un video finisce si torna alla
+          copertina.
+        </li>
+        <li>
+          <b>Fascia colorata</b> (gli stessi colori della striscia del sito):
+          <b>VOL −</b> e <b>VOL +</b> per il volume (su iPhone spengono e
+          riaccendono l'audio: lì il volume si regola con i tasti del
+          telefono), <b>▶</b> play e pausa, <b>⛶</b> schermo intero. Sopra, una
+          barra sottile per andare avanti e indietro nel video.
+        </li>
+        <li>
+          <b>Comandi di YouTube:</b> mentre il video va, il player di YouTube
+          resta attivo: un clic sul video lo mette in pausa, e si possono usare
+          titolo, «Guarda su YouTube», «Altri video» e condividi. Sopra il video
+          che va lo scorrimento di lato è di YouTube: per cambiare canale usa i
+          numeri, oppure scorri sulle fasce sopra e sotto il video.
+        </li>
+        <li>
+          <b>Schermo intero:</b> solo il video, senza l'effetto del televisore,
+          con la barra per scorrere in fondo. Si esce con la crocetta in alto a
+          destra o con Esc. Qui lo scorrimento di lato non cambia video.
+        </li>
+        <li>
+          <b>Tastiera</b> (con il televisore selezionato): spazio play e pausa,
+          ← → 5 secondi indietro e avanti, ↑ ↓ volume, F schermo intero.
+        </li>
+      </ul>
+    </section>
+
+    <section style="break-inside: avoid">
+      <h2><span class="n">31</span>Se un video non parte</h2>
+      <p>
+        Dopo il clic il televisore mostra <b>NO SEGNALE</b> e, sulla fascia
+        verde, il motivo. Un secondo clic in qualsiasi punto del video lo apre
+        su YouTube, in una nuova scheda. Prima del clic resta sempre la
+        copertina normale.
+      </p>
+      <table>
+        <tr>
+          <th>Scritta sul televisore</th>
+          <th>Perché succede</th>
+        </tr>
+        <tr>
+          <td>INCORPORAMENTO DISATTIVATO SU YOUTUBE</td>
+          <td>
+            Su YouTube il video non si può guardare su altri siti. Succede
+            spesso con canzoni di altri autori (cover): chi ne ha i diritti
+            permette di vederle fuori da YouTube solo con la sua pubblicità, e
+            chi usa un blocco pubblicità vede questo errore. Gli altri
+            visitatori lo vedono normalmente.
+          </td>
+        </tr>
+        <tr>
+          <td>VIDEO PRIVATO O RIMOSSO</td>
+          <td>Il video è privato, è stato cancellato o il link è sbagliato.</td>
+        </tr>
+        <tr>
+          <td>YOUTUBE NON RAGGIUNGIBILE</td>
+          <td>Connessione assente o YouTube bloccato dalla rete.</td>
+        </tr>
+      </table>
+      <div class="tip">
+        <b>Cosa controllare in YouTube Studio</b>
+        Apri <i>Contenuti</i> → nella riga del video, colonna <b>Limitazioni</b>: se c'è
+        «Copyright», cliccaci per vedere chi ha rivendicato quale canzone e con
+        quale regola. Poi apri il video → <b>Dettagli</b> →
+        <b>Mostra altro</b> → <b>Licenza e distribuzione</b>: deve essere
+        spuntato <b>«Consenti incorporamento»</b>.
+      </div>
+      <div class="warn">
+        <b>Safari e blocchi pubblicità</b>
+        La prima volta Safari chiede un tocco direttamente sul video (compare
+        «TOCCA IL VIDEO ▶»): poi tutto funziona con i comandi del televisore. Se
+        sul tuo Mac nessun video di YouTube parte, neanche su altri siti, la
+        causa è un'estensione che blocca la pubblicità (per esempio wBlock):
+        escludi il sito nell'estensione e, in Safari → Impostazioni →
+        Estensioni, nega anche <span class="k">youtube-nocookie.com</span> a
+        «wBlock Scripts».
+      </div>
+    </section>
+
+    <section style="break-inside: avoid" class="summary">
+      <h2><span class="n">32</span>Riepilogo: i segni nuovi</h2>
+      <p>Da aggiungere al riepilogo della sezione 28.</p>
+      <table>
+        <tr>
+          <th>Segno</th>
+          <th>Dove si scrive</th>
+          <th>Risultato</th>
+          <th>Sez.</th>
+        </tr>
+        <tr>
+          <td><span class="k">📺</span></td>
+          <td>Icona o prima riga del callout, link di YouTube dentro</td>
+          <td>Televisore con un canale per ogni link (fino a 10)</td>
+          <td>29, 30</td>
+        </tr>
+        <tr>
+          <td><span class="k">📺</span> <span class="k">📺 2.5</span></td>
+          <td>Didascalia di un segnalibro o di un video di YouTube</td>
+          <td>Televisore con un solo video (testo nel riquadro blu)</td>
+          <td>29</td>
+        </tr>
+        <tr>
+          <td><span class="k">👁️ testo</span></td>
+          <td>Didascalia di un video di YouTube incorporato</td>
+          <td>Anteprima in stile Quick Look con copertina e titolo</td>
+          <td>29</td>
+        </tr>
+        <tr>
+          <td><span class="k">?t=90</span> <span class="k">?t=1m30s</span></td>
+          <td>In fondo al link di YouTube</td>
+          <td>Il video parte da quel punto</td>
+          <td>29</td>
+        </tr>
+      </table>
+    </section>
+  </body>
+</html>

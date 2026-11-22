@@ -1022,24 +1022,31 @@ a.notion-bookmark .notion-bookmark-title {
   white-space: nowrap;
 }
 
-/* Pillola a destra: favicon + indirizzo (come "Apri con VLC") */
+/* A destra solo la favicon del sito collegato, in un cerchio scuro:
+   niente indirizzo, così il titolo a sinistra ha tutto lo spazio */
 a.notion-bookmark .notion-bookmark-link {
   grid-column: 4;
   grid-row: 1;
   justify-self: end;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: 220px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
   height: 34px;
   margin: 0;
-  padding: 0 16px;
+  padding: 0;
   overflow: hidden;
   background: var(--lk-pill);
   color: var(--lk-pill-text);
-  border-radius: 999px;
-  font-size: 14.3px;
-  font-weight: 500;
+  border-radius: 50%;
+}
+
+/* sito senza favicon: un simbolo di link, il cerchio non resta vuoto */
+a.notion-bookmark .notion-bookmark-link:not(:has(.notion-bookmark-link-icon)) {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23f2f2f4' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M6.6 9.4a2.6 2.6 0 0 0 3.7 0l2.3-2.3a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.4 6.6a2.6 2.6 0 0 0-3.7 0L3.4 8.9a2.6 2.6 0 0 0 3.7 3.7l.9-.9'/%3E%3C/svg%3E")
+      no-repeat center / 16px,
+    var(--lk-pill);
 }
 a.notion-bookmark .notion-bookmark-link-icon {
   flex: 0 0 auto;
@@ -1052,11 +1059,13 @@ a.notion-bookmark .notion-bookmark-link-icon img {
   width: 16px;
   height: 16px;
 }
+/* l'indirizzo non si vede più (resta per i lettori di schermo) */
 a.notion-bookmark .notion-bookmark-link-text {
-  min-width: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
-  color: inherit;
-  text-overflow: ellipsis;
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 
@@ -1149,7 +1158,6 @@ a.notion-bookmark:focus-visible {
   }
   a.notion-bookmark .notion-bookmark-link {
     grid-column: 3;
-    max-width: 120px;
   }
   a.notion-bookmark .notion-bookmark-image {
     grid-column: 1 / -1;
@@ -1714,6 +1722,224 @@ details.notion-toggle .notion-text {
   text-align: left;
 }
 
+/* ---------- Video nella galleria ----------
+   IN NOTION: trascina un video (file caricato) DENTRO il callout 🖼️, come
+   le foto. Nella striscia è fermo sul primo fotogramma, con l'icona ▶ in
+   basso a sinistra; al clic si ingrandisce e parte (lib/video-zoom.ts). */
+.notion-gallery_co figure.notion-asset-wrapper-video > div {
+  position: relative !important;
+  width: auto !important;
+  padding: 0 !important;
+}
+
+.notion-gallery_co figure.notion-asset-wrapper-video video {
+  display: block;
+  width: auto !important;
+  max-width: min(86vw, 900px) !important;
+  height: var(--g-gallery-h) !important;
+  object-fit: cover !important;
+  border-radius: 12px;
+  background: #111111;
+  box-shadow: var(--g-photo-shadow);
+  cursor: zoom-in;
+  transition: box-shadow 0.25s ease;
+  -webkit-user-drag: none;
+}
+
+.notion-gallery_co figure:hover video {
+  box-shadow: var(--g-photo-shadow-hover);
+}
+
+.notion-gallery_co figure video:focus-visible {
+  outline: 2px solid var(--g-yellow);
+  outline-offset: 3px;
+}
+
+/* l'icona ▶: stesso vetro scuro del pulsante "Scarica", sempre visibile
+   (distingue i video dalle foto). Il clic passa al video: in qualsiasi punto
+   del video l'icona si accende di giallo e il clic lo fa partire. */
+.g-gallery-play {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  background: rgba(20, 22, 30, 0.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+  pointer-events: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.g-gallery-play svg {
+  width: 15px;
+  height: 15px;
+  margin-left: 2px; /* il triangolo sembra centrato solo spostato a destra */
+  fill: currentColor;
+}
+
+/* acceso: col mouse sopra il video, al tocco, con il video selezionato
+   dalla tastiera */
+.notion-gallery_co figure video:active ~ .g-gallery-play,
+.notion-gallery_co figure video:focus-visible ~ .g-gallery-play {
+  background: var(--g-yellow);
+  color: #111111;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .notion-gallery_co figure video:hover ~ .g-gallery-play {
+    background: var(--g-yellow);
+    color: #111111;
+  }
+}
+
+/* video ingrandito: fondo e tempi dello zoom delle foto */
+.g-vzoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  cursor: zoom-out;
+  transition: opacity 0.3s;
+}
+
+.g-vzoom-overlay.g-vzoom-open {
+  opacity: 1;
+}
+
+.g-vzoom-video {
+  position: fixed;
+  z-index: 1001;
+  margin: 0;
+  border-radius: 0;
+  background: #000000;
+  object-fit: cover;
+  cursor: zoom-out;
+  transition-property: top, left, width, height;
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+/* attesa: anello sottile al centro del video, finché non parte davvero */
+.g-vzoom-spinner {
+  position: fixed;
+  z-index: 1002;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: var(--g-yellow);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  animation: g-vzoom-spin 0.8s linear infinite;
+}
+
+.g-vzoom-spinner.g-vzoom-open.g-vzoom-waiting {
+  opacity: 1;
+  transition-delay: 0.35s; /* se parte subito, l'anello non si vede */
+}
+
+@keyframes g-vzoom-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* la barra: una riga sottile sotto il video; al passaggio o trascinando
+   diventa più spessa e compare il pallino. L'area sensibile è più alta
+   della riga, per prenderla facilmente col dito. */
+.g-vzoom-bar {
+  --p: 0;
+  position: fixed;
+  z-index: 1002;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  cursor: pointer;
+  touch-action: none;
+  transition: opacity 0.2s 0s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.g-vzoom-bar.g-vzoom-open {
+  opacity: 1;
+  transition-delay: 0.2s;
+}
+
+.g-vzoom-bar:focus-visible {
+  outline: none;
+}
+
+.g-vzoom-rail {
+  position: relative;
+  width: 100%;
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.28);
+  transition: height 0.15s ease;
+}
+
+.g-vzoom-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--p) * 100%);
+  border-radius: inherit;
+  background: #ffffff;
+}
+
+.g-vzoom-knob {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--p) * 100%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.15s ease;
+}
+
+.g-vzoom-bar:hover .g-vzoom-rail,
+.g-vzoom-bar:focus-visible .g-vzoom-rail,
+.g-vzoom-dragging .g-vzoom-rail {
+  height: 6px;
+}
+
+.g-vzoom-bar:hover .g-vzoom-knob,
+.g-vzoom-bar:focus-visible .g-vzoom-knob,
+.g-vzoom-dragging .g-vzoom-knob {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.g-vzoom-dragging .g-vzoom-fill,
+.g-vzoom-bar:focus-visible .g-vzoom-fill {
+  background: var(--g-yellow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-vzoom-overlay,
+  .g-vzoom-video,
+  .g-vzoom-bar,
+  .g-vzoom-spinner,
+  .g-vzoom-rail,
+  .g-vzoom-knob {
+    transition: none;
+  }
+}
+
 /* frecce rotonde e traslucide che compaiono al passaggio, come su macOS */
 .g-gallery-btn {
   position: absolute;
@@ -1895,7 +2121,7 @@ html {
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
     .notion-lockscreen_co
-  ) {
+  ):not(.notion-television_co) {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
@@ -1924,7 +2150,7 @@ html {
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
     .notion-lockscreen_co
-  )
+  ):not(.notion-television_co)
   > .notion-page-icon-inline {
   display: grid;
   place-items: center;
@@ -1942,7 +2168,7 @@ html {
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
     .notion-lockscreen_co
-  )
+  ):not(.notion-television_co)
   > .notion-callout-text {
   grid-column: 2;
   margin-left: 0;
@@ -1953,7 +2179,7 @@ html {
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
     .notion-lockscreen_co
-  )
+  ):not(.notion-television_co)
   > .notion-callout-text
   > :first-child {
   margin-top: 0;
@@ -1964,7 +2190,7 @@ html {
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
     .notion-lockscreen_co
-  )
+  ):not(.notion-television_co)
   > .notion-callout-text
   > :last-child {
   margin-bottom: 0;
@@ -1976,7 +2202,7 @@ html {
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
     .notion-lockscreen_co
-  ):not(:has(> .notion-page-icon-inline))
+  ):not(.notion-television_co):not(:has(> .notion-page-icon-inline))
   > .notion-callout-text {
   grid-column: 1 / -1;
 }
@@ -1986,7 +2212,7 @@ html {
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
     .notion-lockscreen_co
-  )
+  ):not(.notion-television_co)
   > .notion-page-icon-inline
   .notion-page-icon {
   width: auto;
@@ -2002,7 +2228,7 @@ html {
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
     .notion-lockscreen_co
-  )
+  ):not(.notion-television_co)
   .notion-button {
   min-height: 0;
   margin-top: 0.35em;
@@ -2021,7 +2247,7 @@ html {
     .notion-contextmenu_co
   ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
     .notion-lockscreen_co
-  )
+  ):not(.notion-television_co)
   .notion-button:hover {
   background: var(--g-red);
   color: #fff;
@@ -2032,7 +2258,7 @@ html {
       .notion-contextmenu_co
     ):not(.notion-scrapbook_co):not(.notion-appstore_co):not(
       .notion-lockscreen_co
-    ) {
+    ):not(.notion-television_co) {
     padding: 0.85em var(--g-box-pad-x);
     column-gap: 0.65em;
   }
@@ -2269,6 +2495,7 @@ html {
 .notion-callout.notion-scrapbook_co.notion-scrapbook_co,
 .notion-callout.notion-appstore_co,
 .notion-callout.notion-lockscreen_co,
+.notion-callout.notion-television_co,
 .notion-callout.notion-contextmenu_co {
   display: block;
   min-height: 0;
@@ -2286,6 +2513,7 @@ html {
 .notion-scrapbook_co > .notion-page-icon-inline,
 .notion-appstore_co > .notion-page-icon-inline,
 .notion-lockscreen_co > .notion-page-icon-inline,
+.notion-television_co > .notion-page-icon-inline,
 .notion-contextmenu_co > .notion-page-icon-inline {
   display: none;
 }
@@ -2352,7 +2580,8 @@ html {
    esce dai suoi bordi, e l'alone sfumato veniva tagliato di netto (sembrava
    un'ombra squadrata). Qui l'alone può uscire liberamente. */
 .notion-row:has(figure.notion-asset-wrapper-image),
-.notion-row:has(.notion-lockscreen_co) {
+.notion-row:has(.notion-lockscreen_co),
+.notion-row:has(.notion-television_co) {
   overflow: visible;
 }
 
@@ -2729,7 +2958,8 @@ html {
    callout non aggiunge margini né il suo modo di andare a capo */
 .notion-scrapbook_co > .notion-callout-text,
 .notion-appstore_co > .notion-callout-text,
-.notion-lockscreen_co > .notion-callout-text {
+.notion-lockscreen_co > .notion-callout-text,
+.notion-television_co > .notion-callout-text {
   display: block;
   width: 100%;
   margin: 0;

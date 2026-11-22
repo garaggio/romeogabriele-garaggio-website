@@ -1,33 +1,20 @@
-'use client'
+import { MacAlert, alertButton } from './MacAlert'
 
-import { usePathname } from 'next/navigation'
+// Pagina che non esiste: l'avviso del Mac col portatile e il punto di
+// domanda (public/404.png) e il ritorno alla home.
 
-import type * as types from '@/lib/types'
-
-import styles from './styles.module.css'
-
-export function Page404({ pageId, error }: types.PageProps) {
-  const pathname = usePathname()
-  const missingPageId = pageId || pathname?.replace(/^\//, '')
-
+export function Page404() {
   return (
-    <div className={styles.container}>
-      <main className={styles.main}>
-        <h1>Notion Page Not Found</h1>
-
-        {error ? (
-          <p>{error.message}</p>
-        ) : (
-          missingPageId && (
-            <p>
-              Make sure that Notion page &quot;{missingPageId}&quot; is publicly
-              accessible.
-            </p>
-          )
-        )}
-
-        <img src='/404.png' alt='404 Not Found' className={styles.errorImage} />
-      </main>
-    </div>
+    <MacAlert
+      windowTitle='404'
+      icon='/404.png'
+      title='Pagina non trovata.'
+      text='Forse la pagina ha cambiato nome o è stata spostata. Torna alla home per ricaricare il percorso e ritrovarla dalle cartelle.'
+      buttons={
+        <a className={alertButton(true)} href='/'>
+          Torna alla home
+        </a>
+      }
+    />
   )
 }

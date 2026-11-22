@@ -1,0 +1,187 @@
+/* Pagine 404 e di errore (components/MacAlert.tsx), nello stile del sito:
+   sfondo blu sfumato, striscia colorata in fondo e l'avviso del Mac classico
+   come il Raccoglitore. Stile autonomo: la pagina di errore grave
+   (app/global-error.tsx) non carica global.css. */
+
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 72px;
+  overflow-y: auto;
+  background:
+    radial-gradient(120% 80% at 100% 100%, #3a0d4f 0, transparent 45%),
+    linear-gradient(160deg, #0d22d6 0%, #0a1a9e 45%, #060f6e 100%);
+  color: rgba(238, 242, 255, 0.94);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.screen * {
+  box-sizing: border-box;
+}
+
+/* ---------- Avviso Platinum, come il Raccoglitore classico ---------- */
+
+.alert {
+  width: min(560px, 100%);
+  border: 1px solid #000;
+  background: #ddd;
+  color: #000;
+  box-shadow:
+    inset 1px 1px 0 #fff,
+    inset -1px -1px 0 #888,
+    2px 2px 0 #000;
+}
+
+.alertBar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  border-bottom: 1px solid #000;
+  background:
+    repeating-linear-gradient(to bottom, #ddd 0 3px, #fff 3px 4px, #888 4px 5px)
+      center / calc(100% - 16px) 11px no-repeat,
+    #ddd;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.alertBar span {
+  padding: 0 8px;
+  background: #ddd;
+}
+
+.closeBox {
+  position: absolute;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #000;
+  background: #ddd;
+  box-shadow: 0 0 0 3px #ddd;
+}
+
+.alertBody {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 22px 22px 18px;
+  border-top: 1px solid #fff;
+  background: #eee;
+}
+
+/* portatile in pixel art: 136 px = metà dell'immagine, così ogni
+   pixel del disegno resta un quadratino netto */
+.icon {
+  flex: none;
+  width: 136px;
+  height: 84px;
+  image-rendering: pixelated;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.alertTitle {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.alertText {
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.alertButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 0 22px 20px;
+  background: #eee;
+}
+
+.button {
+  padding: 4px 18px;
+  border: 1px solid #000;
+  border-radius: 5px;
+  background: #ddd;
+  box-shadow:
+    inset 1px 1px 0 #fff,
+    inset -1px -1px 0 #888;
+  color: #000;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:active {
+  background: #888;
+  box-shadow:
+    inset 1px 1px 0 #000,
+    inset -1px -1px 0 #ddd;
+  color: #fff;
+}
+
+/* pulsante principale: giallo con il doppio bordo del Mac classico */
+.primary {
+  outline: 3px solid #000;
+  outline-offset: 2px;
+  background: #ffd83a;
+}
+
+@media (max-width: 480px) {
+  .alertBody {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .alertButtons {
+    justify-content: center;
+  }
+}
+
+/* ---------- Striscia colorata in fondo, come nel sito ---------- */
+
+.strip {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: 28px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+
+.strip span:nth-child(1) {
+  background: #b3121c;
+}
+
+.strip span:nth-child(2) {
+  background: #3a9b5c;
+  color: #111;
+}
+
+.strip span:nth-child(3) {
+  background: #ee6a1f;
+  color: #111;
+}
+
+.strip span:nth-child(4) {
+  background: #1428c8;
+}

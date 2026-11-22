@@ -50,10 +50,26 @@ export async function resolveNotionPage(
     if (pageId) {
       recordMap = await getPage(pageId)
     } else {
-      // handle mapping of user-friendly canonical page paths to Notion page IDs
-      // e.g., /developer-x-entrepreneur versus /71201624b204481f862630ea25ce62fe
-      const siteMap = await getSiteMap()
+      // indirizzo leggibile (es. /press-kit) → pagina, con la mappa delle
+      // pagine. Se non c'è, la mappa si rifà subito: il titolo può essere
+      // appena cambiato in Notion (vedi lib/get-site-map.ts).
+      let siteMap = await getSiteMap()
       pageId = siteMap?.canonicalPageMap[rawPageId]
+      if (!pageId) {
+        siteMap = await getSiteMap({ fresh: true })
+        pageId = siteMap?.canonicalPageMap[rawPageId]
+      }
+
+      // Indirizzo vecchio di una pagina rinominata (un link condiviso, una
+      // pagina ancora in cache): se somiglia chiaramente a un solo indirizzo
+      // attuale, si va lì invece di dare 404.
+      if (!pageId) {
+        const target = closestPagePath(
+          rawPageId,
+          Object.keys(siteMap?.canonicalPageMap ?? {})
+        )
+        if (target) return { redirect: `/${target}` }
+      }
 
       if (pageId) {
         // TODO: we're not re-using the page recordMap from siteMaps because it is
@@ -90,6 +106,47 @@ export async function resolveNotionPage(
     recordMap = await getPage(pageId)
   }
 
+  // titoli usati da più pagine: i link a quelle pagine avranno l'id in coda
+  // (lib/map-page-url.ts). La mappa è già in memoria quasi sempre.
+  const ambiguousPaths = (await getSiteMap().catch(() => undefined))
+    ?.ambiguousPaths
+  if (ambiguousPaths?.length) {
+    ;(recordMap as any).ambiguous_paths = ambiguousPaths
+  }
+
   const props: PageProps = { site, recordMap, pageId }
   return { ...props, ...(await acl.pageAcl(props)) }
+}
+
+// Indirizzo attuale più simile a uno vecchio, confrontando le parole del
+// titolo: "composizioni-produzioni" → "composizioni-live-produzioni". Solo
+// se la somiglianza è netta (almeno metà delle parole in comune) e non c'è
+// un altro indirizzo ugualmente simile; altrimenti nessuno (pagina 404).
+function closestPagePath(path: string, candidates: string[]) {
+  const words = (s: string) =>
+    new Set(
+      s
+        .toLowerCase()
+        .split('-')
+        .filter((w) => w && !/^[\da-f]{32}$/.test(w))
+    )
+  const wanted = words(path)
+  if (!wanted.size) return undefined
+
+  let best: string | undefined
+  let bestScore = 0
+  let tie = false
+  for (const candidate of candidates) {
+    const have = words(candidate)
+    const common = [...wanted].filter((w) => have.has(w)).length
+    const score = common / new Set([...wanted, ...have]).size
+    if (score > bestScore) {
+      best = candidate
+      bestScore = score
+      tie = false
+    } else if (score === bestScore) {
+      tie = true
+    }
+  }
+  return bestScore >= 0.5 && !tie ? best : undefined
 }

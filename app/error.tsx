@@ -15,5 +15,5 @@ export default function ErrorBoundary({
     console.error(error)
   }, [error])
 
-  return <ErrorPage statusCode={500} onRetry={reset} />
+  return <ErrorPage onRetry={reset} />
 }

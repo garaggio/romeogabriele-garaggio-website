@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 
 import { NotionPageRoute } from '@/components/NotionPageRoute'
 import { getPageData } from '@/lib/get-page-data'
@@ -42,6 +43,8 @@ export async function generateMetadata({
 export default async function DynamicPage({ params }: DynamicPageProps) {
   const { pageId } = await params
   const pageProps = await getPageData(pageId)
+  // pagina rinominata in Notion: dal vecchio indirizzo al nuovo
+  if (pageProps.redirect) redirect(pageProps.redirect)
 
   return <NotionPageRoute pageProps={pageProps} />
 }

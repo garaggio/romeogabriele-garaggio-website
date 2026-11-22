@@ -16,9 +16,9 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <html lang='en'>
+    <html lang='it'>
       <body>
-        <ErrorPage statusCode={500} onRetry={reset} />
+        <ErrorPage onRetry={reset} />
       </body>
     </html>
   )

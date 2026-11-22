@@ -14,6 +14,8 @@ export interface PageProps {
   recordMap?: ExtendedRecordMap
   pageId?: string
   error?: PageError
+  /** indirizzo vecchio di una pagina rinominata: si va a quello attuale */
+  redirect?: string
   /** quando il server ha generato la pagina (ms): serve a riconoscere nel
    *  browser una copia vecchia servita dalla cache di Vercel */
   generatedAt?: number
@@ -45,6 +47,8 @@ export interface SiteMap {
   site: Site
   pageMap: PageMap
   canonicalPageMap: CanonicalPageMap
+  /** indirizzi condivisi da più pagine con lo stesso titolo */
+  ambiguousPaths?: string[]
 }
 
 export interface CanonicalPageMap {

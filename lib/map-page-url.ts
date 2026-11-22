@@ -17,12 +17,22 @@ export const mapPageUrl =
     if (uuidToId(pageUuid) === site.rootNotionPageId) {
       return createUrl('/', searchParams)
     } else {
-      return createUrl(
-        `/${getCanonicalPageId(pageUuid, recordMap, { uuid })}`,
-        searchParams
-      )
+      return createUrl(`/${pagePath(pageUuid, recordMap)}`, searchParams)
     }
   }
+
+// Indirizzo della pagina: il titolo (es. /press-kit). Se più pagine hanno lo
+// stesso titolo, l'id in coda le distingue (/foto-41b0…); l'id funziona
+// sempre, qualunque titolo abbia la pagina (lib/resolve-notion-page.ts).
+// L'elenco dei titoli doppi lo mette il server nei dati della pagina.
+function pagePath(pageUuid: string, recordMap: ExtendedRecordMap) {
+  const path = getCanonicalPageId(pageUuid, recordMap, { uuid })
+  const ambiguous: string[] | undefined = (recordMap as any).ambiguous_paths
+  if (!uuid && path && ambiguous?.includes(path)) {
+    return getCanonicalPageId(pageUuid, recordMap, { uuid: true })
+  }
+  return path
+}
 
 export const getCanonicalPageUrl =
   (site: Site, recordMap: ExtendedRecordMap) =>
@@ -32,9 +42,7 @@ export const getCanonicalPageUrl =
     if (uuidToId(pageId) === site.rootNotionPageId) {
       return `https://${site.domain}`
     } else {
-      return `https://${site.domain}/${getCanonicalPageId(pageUuid, recordMap, {
-        uuid
-      })}`
+      return `https://${site.domain}/${pagePath(pageUuid, recordMap)}`
     }
   }
 

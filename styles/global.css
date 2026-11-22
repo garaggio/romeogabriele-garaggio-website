@@ -466,8 +466,25 @@ details.notion-toggle > div {
   color: var(--g-yellow);
 }
 
+/* citazione: la linea a sinistra ha lo stesso gradiente della freccia
+   (freccia.png, dall'azzurro al blu della punta), con le estremità
+   arrotondate come il suo tratto */
 .notion-quote {
-  border-left: 3px solid var(--g-yellow);
+  --g-arrow-gradient: linear-gradient(to bottom, #0b92ed, #1654f8);
+  position: relative;
+  border-left: 0;
+  padding-left: calc(0.9em + 3px);
+}
+
+.notion-quote::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--g-arrow-gradient);
 }
 
 .notion-hr {

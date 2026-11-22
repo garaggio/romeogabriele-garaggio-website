@@ -626,14 +626,12 @@ details.notion-toggle > div {
 }
 
 .notion-nav-header {
+  position: relative;
   padding-left: max(12px, env(safe-area-inset-left, 0px));
   padding-right: max(12px, env(safe-area-inset-right, 0px));
 }
 
 /* la casetta riporta alla home: al centro della barra, grigia come i loghi */
-.notion-nav-header {
-  position: relative;
-}
 
 .notion-nav-header .g-home {
   position: absolute;
@@ -745,102 +743,6 @@ details.notion-toggle > div {
   .notion-collection-card {
     transition: none;
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
-/* Compensa l'altezza della barra superiore di Notion */
-.notion-h1,
-.notion-h2,
-.notion-h3 {
-  scroll-margin-top: calc(var(--notion-header-height, 64px) + 24px);
-}
-
-.toc {
-  width: 100%;
-  background-color: color-mix(in srgb, currentColor 4%, transparent);
-  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  margin: 0.5rem 0 2rem;
-  font-size: 0.95rem;
-}
-
-.toc summary {
-  font-weight: 600;
-  cursor: pointer;
-  list-style: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  user-select: none;
-}
-
-.toc summary::-webkit-details-marker {
-  display: none;
-}
-
-.toc summary::after {
-  content: '▾';
-  font-size: 1.1rem;
-  transition: transform 0.2s ease;
-}
-
-.toc details[open] summary::after {
-  transform: rotate(180deg);
-}
-
-.toc ul {
-  list-style: none;
-  margin: 0.75rem 0 0;
-  padding: 0;
-}
-
-.toc ul ul {
-  margin-top: 0.35rem;
-  padding-left: 1.15rem;
-  border-left: 2px solid color-mix(in srgb, currentColor 18%, transparent);
-}
-
-.toc ul ul ul {
-  margin-top: 0.25rem;
-  padding-left: 1rem;
-  border-left: 1px dashed color-mix(in srgb, currentColor 18%, transparent);
-}
-
-.toc li {
-  margin: 0.4rem 0;
-}
-
-.toc-link {
-  color: inherit;
-  opacity: 0.8;
-  text-decoration: none;
-  display: inline-block;
-  line-height: 1.4;
-  transition: opacity 0.15s ease;
-}
-
-.toc-link[data-level='1'] {
-  font-weight: 600;
-  opacity: 0.95;
-}
-
-.toc-link:hover,
-.toc-link:focus-visible {
-  opacity: 1;
-  text-decoration: underline;
-}
-
-.toc-link.active {
-  opacity: 1;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 /* ==========================================================
@@ -1153,6 +1055,8 @@ a.notion-bookmark .notion-bookmark-image {
   overflow: hidden;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.1);
+  /* react-notion-x la nasconde sul telefono e dentro le colonne */
+  display: block !important;
 }
 a.notion-bookmark .notion-bookmark-image img {
   position: absolute;
@@ -1162,11 +1066,6 @@ a.notion-bookmark .notion-bookmark-image img {
   /* ritagliata a quadrato, centrata, senza bordi aggiunti */
   object-fit: cover !important;
   object-position: center;
-}
-
-/* react-notion-x nasconde la foto sul telefono e dentro le colonne */
-a.notion-bookmark .notion-bookmark-image {
-  display: block !important;
 }
 
 /* Descrizione a destra, grande e leggera come "Durata: 1:12".
@@ -1283,6 +1182,9 @@ a.notion-bookmark:focus-visible {
 }
 
 .notion-search .notion-search-result-highlight {
+  display: block;
+  margin-top: 2px;
+  color: var(--fg-color-3);
   white-space: normal;
   overflow-wrap: anywhere;
   text-transform: none;
@@ -1305,12 +1207,6 @@ a.notion-bookmark:focus-visible {
 .notion-search .g-search-result-title {
   display: block;
   font-weight: 700;
-}
-
-.notion-search .notion-search-result-highlight {
-  display: block;
-  margin-top: 2px;
-  color: var(--fg-color-3);
 }
 
 /* la parola cercata: evidenziata come il resto del sito */
@@ -1399,10 +1295,6 @@ a.notion-bookmark:focus-visible {
      --g-folder-icon: url("/icons/musica.png");
    }
 */
-.index-page .notion-gallery .notion-collection-card {
-  --g-folder-icon: url('/cartella.png');
-}
-
 .index-page .notion-gallery-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(1rem, 4vw, 2.5rem);
@@ -1411,6 +1303,7 @@ a.notion-bookmark:focus-visible {
 }
 
 .index-page .notion-gallery .notion-collection-card {
+  --g-folder-icon: url('/cartella.png');
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1614,6 +1507,8 @@ details.notion-toggle .notion-text {
     0 2px 4px rgba(0, 0, 0, 0.12), 0 10px 20px -6px rgba(0, 0, 0, 0.22),
     0 26px 44px -16px rgba(0, 0, 0, 0.32);
   --g-gallery-h: clamp(220px, 46vh, 440px);
+  /* spazio per le ombre ai lati della striscia (vedi sotto) */
+  --g-shadow-room: 32px;
   position: relative;
   display: block;
   width: 100%;
@@ -1629,10 +1524,6 @@ details.notion-toggle .notion-text {
    dal margine del testo e l'ombra ha posto anche ai lati, pure dentro
    colonne e toggle. Ai lati una sfumatura: le foto che scorrono e le ombre
    svaniscono morbide invece di finire con un taglio netto. */
-.notion-callout.notion-gallery_co {
-  --g-shadow-room: 32px;
-}
-
 .notion-gallery_co > .notion-callout-text {
   display: flex;
   width: auto;
@@ -2345,12 +2236,12 @@ html {
 
 /* la linea sotto il titolo delle sottopagine: a tutta larghezza della pagina,
    tratteggiata come i divisori del sito */
-.notion-collection-page-properties,
-.notion-collection-row {
+.notion-collection-page-properties {
   width: 100%;
 }
 
 .notion-collection-row {
+  width: 100%;
   border-bottom: 1px dashed var(--g-line);
 }
 
@@ -2360,7 +2251,12 @@ html {
    messe in fila) si nasconde e al suo posto compare la finestra.
    ========================================================== */
 
-.notion-callout.notion-scrapbook_co.notion-scrapbook_co {
+/* Callout usati come semplici contenitori (Raccoglitore, righe App Store,
+   notifiche, menu tasto destro): niente aspetto di avviso */
+.notion-callout.notion-scrapbook_co.notion-scrapbook_co,
+.notion-callout.notion-appstore_co,
+.notion-callout.notion-lockscreen_co,
+.notion-callout.notion-contextmenu_co {
   display: block;
   min-height: 0;
   margin: 0;
@@ -2374,15 +2270,10 @@ html {
   backdrop-filter: none;
 }
 
-/* le foto originali si nascondono solo quando la finestra è pronta:
-   se il JavaScript non parte, le foto restano visibili invece di sparire */
 .notion-scrapbook_co > .notion-page-icon-inline,
-.notion-scrapbook_co:has(> .g-scrapbook-mount section) > .notion-callout-text {
-  display: none;
-}
-
-/* finché la finestra non è pronta, la riga "🗂️" non si vede */
-.notion-scrapbook_co > .notion-callout-text > .notion-text:first-child:empty {
+.notion-appstore_co > .notion-page-icon-inline,
+.notion-lockscreen_co > .notion-page-icon-inline,
+.notion-contextmenu_co > .notion-page-icon-inline {
   display: none;
 }
 
@@ -2723,20 +2614,11 @@ html {
 /* ---------- Menu sopra una foto (callout 🖱️) ---------- */
 
 .notion-callout.notion-contextmenu_co {
-  display: block;
-  min-height: 0;
   margin: 1em 0;
-  padding: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: none !important;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  /* niente riflesso blu del telefono quando si tocca la foto o il menu */
+  -webkit-tap-highlight-color: transparent;
 }
 
-.notion-contextmenu_co > .notion-page-icon-inline,
 .notion-contextmenu_co > .notion-callout-text > div:has(+ .notion-collection) {
   display: none;
 }
@@ -2754,11 +2636,6 @@ html {
 
 .notion-contextmenu_co figure img {
   cursor: default;
-}
-
-/* niente riflesso blu del telefono quando si tocca la foto o il menu */
-.notion-callout.notion-contextmenu_co {
-  -webkit-tap-highlight-color: transparent;
 }
 
 /* il menu si apre sulla foto, nel punto calcolato da NotionPage.tsx */
@@ -2818,59 +2695,33 @@ html {
 
 /* ==========================================================
    Merch in stile App Store (segnalibro 🛍️ → components/AppRow.tsx)
-   Il callout è solo un contenitore: niente aspetto di avviso.
+   Il callout è solo un contenitore (vedi components/CustomBlock.tsx).
    ========================================================== */
-
-.notion-callout.notion-appstore_co {
-  display: block;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: none !important;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-.notion-appstore_co > .notion-page-icon-inline,
-.notion-appstore_co > .notion-callout-text {
-  display: none;
-}
 
 .g-app-mount {
   width: 100%;
 }
 
 /* ==========================================================
-   Schermata di blocco iPhone (callout 🔒 → components/LockScreen.tsx)
-   Il callout è solo un contenitore; il contenuto originale (foto e righe
-   delle notifiche) si nasconde quando la schermata è pronta.
+   Notifiche (callout 🔔/🔒 → components/LockScreen.tsx)
+   Il callout è solo un contenitore (vedi components/CustomBlock.tsx).
    ========================================================== */
-
-.notion-callout.notion-lockscreen_co {
-  display: block;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: none !important;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-.notion-lockscreen_co > .notion-page-icon-inline,
-.notion-lockscreen_co:has(> .g-lock-mount section) > .notion-callout-text {
-  display: none;
-}
 
 .g-lock-mount {
   width: 100%;
+}
+
+/* Raccoglitore, righe App Store e notifiche: dentro il callout c'è solo il
+   componente (vedi components/CustomBlock.tsx); il riquadro del testo del
+   callout non aggiunge margini né il suo modo di andare a capo */
+.notion-scrapbook_co > .notion-callout-text,
+.notion-appstore_co > .notion-callout-text,
+.notion-lockscreen_co > .notion-callout-text {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  white-space: normal;
 }
 
 /* ==========================================================
@@ -2950,5 +2801,22 @@ html {
       600 18px/1.4 system-ui,
       sans-serif;
     text-align: center;
+  }
+}
+
+/* Primo caricamento (vedi app/layout.tsx e components/NotionPage.tsx): il
+   contenuto resta invisibile finché le immagini in vista non sono pronte,
+   poi compare con una dissolvenza. Barra in alto e sfondo restano visibili. */
+.notion-page {
+  transition: opacity 0.3s ease;
+}
+
+html.g-wait .notion-page {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notion-page {
+    transition: none;
   }
 }

@@ -118,7 +118,66 @@ export async function getPage(pageId: string): Promise<ExtendedRecordMap> {
 
   markContextMenus(recordMap)
 
+  embedCustomCallouts(recordMap)
+
   return recordMap
+}
+
+// letture comuni dei blocchi, usate da tutte le funzioni qui sotto
+const blockValue = (recordMap: ExtendedRecordMap, id: string): any =>
+  getBlockValue(recordMap.block[id])
+
+// testo di un blocco di testo semplice (undefined per gli altri tipi)
+const textOfBlock = (recordMap: ExtendedRecordMap, id: string) => {
+  const child = blockValue(recordMap, id)
+  return child?.type === 'text'
+    ? getTextContent(child.properties?.title)
+    : undefined
+}
+
+// Raccoglitore 🗂️, notifiche 🔔/🔒 e righe App Store 🛍️: il contenuto del
+// callout diventa un solo blocco "codice" segnaposto (lingua "garaggio").
+// NotionPage.tsx lo sostituisce con il componente (Scrapbook, LockScreen,
+// AppRow), che così arriva già disegnato nell'HTML del server invece di
+// comparire dopo l'avvio del JavaScript. Il contenuto originale resta in
+// format.g_content (il Raccoglitore ci legge le foto).
+const customCallouts = new Set(['scrapbook', 'lockscreen', 'appstore'])
+
+function embedCustomCallouts(recordMap: ExtendedRecordMap) {
+  for (const entry of Object.values(recordMap.block)) {
+    const block: any = getBlockValue(entry)
+    if (
+      block?.type !== 'callout' ||
+      !customCallouts.has(block.format?.block_color) ||
+      block.format.g_content
+    ) {
+      continue
+    }
+    const id = `${block.id}-g`
+    storeBlock(recordMap, entry, {
+      id,
+      type: 'code',
+      version: 1,
+      alive: true,
+      parent_id: block.id,
+      parent_table: 'block',
+      space_id: block.space_id,
+      properties: { title: [['']], language: [['garaggio']] },
+      format: { g_kind: block.format.block_color, g_for: block.id }
+    })
+    block.format.g_content = block.content ?? []
+    block.content = [id]
+  }
+}
+
+// salva un blocco creato da noi con la stessa forma di quelli di Notion
+// (che può avere un livello "value" in più, a seconda della versione)
+function storeBlock(recordMap: ExtendedRecordMap, like: any, value: any) {
+  recordMap.block[value.id] = (
+    like?.value?.value
+      ? { ...like, value: { ...like.value, value } }
+      : { ...like, value }
+  ) as any
 }
 
 // Icone personalizzate di Notion (custom emoji): nella pagina arrivano come
@@ -242,12 +301,7 @@ const isGalleryMarker = (text: string) => {
 }
 
 function markPhotoGalleries(recordMap: ExtendedRecordMap) {
-  const textOf = (id: string) => {
-    const child: any = getBlockValue(recordMap.block[id])
-    return child?.type === 'text'
-      ? getTextContent(child.properties?.title)
-      : undefined
-  }
+  const textOf = (id: string) => textOfBlock(recordMap, id)
 
   for (const entry of Object.values(recordMap.block)) {
     const block: any = getBlockValue(entry)
@@ -317,12 +371,7 @@ const scrapbookMarker = (text: string) => {
 }
 
 function markScrapbooks(recordMap: ExtendedRecordMap) {
-  const textOf = (id: string) => {
-    const child: any = getBlockValue(recordMap.block[id])
-    return child?.type === 'text'
-      ? getTextContent(child.properties?.title)
-      : undefined
-  }
+  const textOf = (id: string) => textOfBlock(recordMap, id)
 
   for (const entry of Object.values(recordMap.block)) {
     const block: any = getBlockValue(entry)
@@ -402,13 +451,8 @@ const menuMarker = (text: string) => {
 }
 
 function markContextMenus(recordMap: ExtendedRecordMap) {
-  const valueOf = (id: string): any => getBlockValue(recordMap.block[id])
-  const textOf = (id: string) => {
-    const child = valueOf(id)
-    return child?.type === 'text'
-      ? getTextContent(child.properties?.title)
-      : undefined
-  }
+  const valueOf = (id: string) => blockValue(recordMap, id)
+  const textOf = (id: string) => textOfBlock(recordMap, id)
   const isDatabase = (block: any) => block?.type === 'collection_view'
   const handled = new Set<string>()
 
@@ -422,14 +466,6 @@ function markContextMenus(recordMap: ExtendedRecordMap) {
   }
 
   // stessa forma di un blocco già presente (react-notion-x la legge così)
-  const storeBlock = (like: any, value: any) => {
-    recordMap.block[value.id] = (
-      like?.value?.value
-        ? { ...like, value: { ...like.value, value } }
-        : { ...like, value }
-    ) as any
-  }
-
   // mette i blocchi indicati (a partire da "first") dentro un callout menu
   const wrap = (first: any, ids: string[], position?: string) => {
     const parent = valueOf(first.parent_id)
@@ -437,7 +473,7 @@ function markContextMenus(recordMap: ExtendedRecordMap) {
     const at = siblings.indexOf(first.id)
     if (at < 0) return
     const wrapperId = `${first.id.slice(0, -4)}menu`
-    storeBlock(recordMap.block[first.id], {
+    storeBlock(recordMap, recordMap.block[first.id], {
       id: wrapperId,
       type: 'callout',
       version: 1,
@@ -547,7 +583,7 @@ function markContextMenus(recordMap: ExtendedRecordMap) {
 const appIcons = ['🛍️', '🛍']
 
 function markAppRows(recordMap: ExtendedRecordMap) {
-  const valueOf = (id: string): any => getBlockValue(recordMap.block[id])
+  const valueOf = (id: string) => blockValue(recordMap, id)
 
   for (const entry of Object.values(recordMap.block)) {
     const block: any = getBlockValue(entry)
@@ -633,7 +669,7 @@ const firstLink = (title: any[] | undefined) => {
 }
 
 function markLockScreens(recordMap: ExtendedRecordMap) {
-  const valueOf = (id: string): any => getBlockValue(recordMap.block[id])
+  const valueOf = (id: string) => blockValue(recordMap, id)
   // emoji personalizzate del workspace (già risolte da resolveCustomEmojis)
   const customEmojis: Record<string, string> =
     (recordMap as any).custom_emojis ?? {}
@@ -752,7 +788,7 @@ function markLockScreens(recordMap: ExtendedRecordMap) {
 const secretIcons = ['🙈']
 
 function hideSecretCallouts(recordMap: ExtendedRecordMap) {
-  const valueOf = (id: string): any => getBlockValue(recordMap.block[id])
+  const valueOf = (id: string) => blockValue(recordMap, id)
 
   for (const entry of Object.values(recordMap.block)) {
     const block: any = getBlockValue(entry)

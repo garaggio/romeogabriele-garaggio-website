@@ -12,7 +12,6 @@ import {
 } from 'notion-utils'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
-import { createPortal } from 'react-dom'
 import BodyClassName from 'react-body-classname'
 import {
   type NotionComponents,
@@ -30,14 +29,18 @@ import { getLockScreens } from '@/lib/lockscreen'
 import { mapImageUrl } from '@/lib/map-image-url'
 import { mapPageUrl } from '@/lib/map-page-url'
 import { getGalleryDownloads, getScrapbooks } from '@/lib/scrapbook'
+import { lockPageScroll } from '@/lib/scroll-lock'
 import { searchNotion } from '@/lib/search-notion'
 import { useDarkMode } from '@/lib/use-dark-mode'
 import { Footer } from './Footer'
 import { NotionPageHeader } from './NotionPageHeader'
 import { PageAside } from './PageAside'
-import { AppRow } from './AppRow'
-import { LockScreen } from './LockScreen'
-import { Scrapbook } from './Scrapbook'
+import {
+  byBlockId,
+  CustomBlock,
+  CustomBlocksContext,
+  isCustomBlock
+} from './CustomBlock'
 
 // -----------------------------------------------------------------------------
 // dynamic imports for optional components
@@ -186,10 +189,19 @@ const propertyTextValue = (
   return defaultFn()
 }
 
+// blocchi "codice": i segnaposto del sito diventano i nostri componenti
+// (components/CustomBlock.tsx), gli altri restano codice con i colori
+const CodeOrCustom = (props: any) =>
+  isCustomBlock(props.block) ? (
+    <CustomBlock block={props.block} />
+  ) : (
+    <Code {...props} />
+  )
+
 const notionRendererComponents: Partial<NotionComponents> = {
   nextImage: Image,
   nextLink: Link,
-  Code,
+  Code: CodeOrCustom,
   Collection,
   Equation,
   Pdf,
@@ -263,6 +275,55 @@ export function NotionPage({
       clear()
     }
   }, [pageId])
+
+  // Primo caricamento: la pagina (nascosta dallo script in app/layout.tsx)
+  // compare quando le immagini visibili sono pronte, così chi arriva trova
+  // tutto già al suo posto invece di vedere le foto caricarsi. Aspettiamo
+  // le foto nella prima schermata, gli sfondi segnati con data-g-image
+  // (notifiche) e i caratteri; al massimo fino a 1,4 s dall'apertura.
+  React.useEffect(() => {
+    const root = document.documentElement
+    if (!root.classList.contains('g-wait')) return
+    const inView = (el: Element) => {
+      const r = el.getBoundingClientRect()
+      return r.bottom > 0 && r.top < window.innerHeight && r.width > 0
+    }
+    const ready = (img: HTMLImageElement) =>
+      img.complete
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            img.addEventListener('load', () => resolve(), { once: true })
+            img.addEventListener('error', () => resolve(), { once: true })
+          })
+    const images = [
+      ...document.querySelectorAll<HTMLImageElement>('.notion-page img')
+    ]
+      .filter(inView)
+      .map(ready)
+    const backgrounds = [
+      ...document.querySelectorAll<HTMLElement>('[data-g-image]')
+    ]
+      .filter(inView)
+      .map((el) => {
+        const img = new window.Image()
+        img.src = el.dataset.gImage!
+        return ready(img)
+      })
+    const limit = new Promise((resolve) =>
+      setTimeout(resolve, Math.max(0, 1400 - performance.now()))
+    )
+    let done = false
+    const reveal = () => {
+      if (done) return
+      done = true
+      root.classList.remove('g-wait')
+    }
+    void Promise.race([
+      Promise.all([...images, ...backgrounds, document.fonts.ready]),
+      limit
+    ]).then(reveal)
+    return reveal
+  }, [])
 
   // lite mode is for oembed
   const isLiteMode = lite === 'true'
@@ -486,44 +547,15 @@ export function NotionPage({
     // Ingrandimento di una foto della galleria (react-notion-x): come nel
     // Raccoglitore la pagina resta ferma finché la foto non torna al suo
     // posto. Senza blocco, il primo scorrimento chiuderebbe la foto.
-    const scrollKeys = new Set([
-      ' ',
-      'ArrowUp',
-      'ArrowDown',
-      'PageUp',
-      'PageDown',
-      'Home',
-      'End'
-    ])
-    const blockScroll = (event: Event) => event.preventDefault()
-    const blockKeys = (event: KeyboardEvent) => {
-      if (scrollKeys.has(event.key)) event.preventDefault()
-    }
-    const root = document.documentElement
-    let locked = false
-    let previousOverflow = ''
-    let previousPadding = ''
+    let unlockScroll: (() => void) | undefined
     const lock = (event: Event) => {
       const img = event.target as Element | null
-      if (locked || !img?.closest?.('.notion-gallery_co')) return
-      locked = true
-      previousOverflow = root.style.overflow
-      previousPadding = root.style.paddingRight
-      const scrollbar = window.innerWidth - root.clientWidth
-      root.style.overflow = 'hidden'
-      if (scrollbar > 0) root.style.paddingRight = `${scrollbar}px`
-      window.addEventListener('wheel', blockScroll, { passive: false })
-      window.addEventListener('touchmove', blockScroll, { passive: false })
-      window.addEventListener('keydown', blockKeys)
+      if (unlockScroll || !img?.closest?.('.notion-gallery_co')) return
+      unlockScroll = lockPageScroll()
     }
     const unlock = () => {
-      if (!locked) return
-      locked = false
-      window.removeEventListener('wheel', blockScroll)
-      window.removeEventListener('touchmove', blockScroll)
-      window.removeEventListener('keydown', blockKeys)
-      root.style.overflow = previousOverflow
-      root.style.paddingRight = previousPadding
+      unlockScroll?.()
+      unlockScroll = undefined
     }
     // gli eventi dello zoom non risalgono la pagina: li ascoltiamo in cattura
     document.addEventListener('medium-zoom:open', lock, true)
@@ -914,176 +946,44 @@ export function NotionPage({
     }
   }, [recordMap])
 
-  // Raccoglitore: i callout 🗂️ (vedi lib/notion.ts e lib/scrapbook.ts)
-  // diventano la finestra components/Scrapbook.tsx. React-notion-x disegna il
-  // callout; noi ci aggiungiamo dentro un contenitore e lo riempiamo con un
-  // portale, così il componente resta un normale componente React.
-  const scrapbooks = React.useMemo(() => getScrapbooks(recordMap), [recordMap])
-  const [scrapbookMounts, setScrapbookMounts] = React.useState<
-    Array<{ key: string; node: HTMLElement; data: (typeof scrapbooks)[number] }>
-  >([])
-
-  React.useEffect(() => {
-    const mounts: Array<{
-      key: string
-      node: HTMLElement
-      data: (typeof scrapbooks)[number]
-    }> = []
-
-    for (const data of scrapbooks) {
-      const host = document.querySelector<HTMLElement>(
-        `.notion-scrapbook_co.notion-block-${data.blockId}`
-      )
-      if (!host) continue
-      const node = document.createElement('div')
-      node.className = 'g-scrapbook-mount'
-      host.append(node)
-      mounts.push({ key: data.blockId, node, data })
-    }
-
-    setScrapbookMounts(mounts)
-    return () => {
-      for (const mount of mounts) mount.node.remove()
-      setScrapbookMounts([])
-    }
-  }, [scrapbooks])
-
-  // Schermata di blocco iPhone: i callout 🔒 (vedi lib/notion.ts e
-  // lib/lockscreen.ts) diventano components/LockScreen.tsx, montata nel
-  // callout con un portale come il Raccoglitore.
-  const lockScreens = React.useMemo(
-    () => getLockScreens(recordMap, siteMapPageUrl),
+  // Raccoglitore 🗂️, notifiche 🔔/🔒 e righe App Store 🛍️: i dati di ogni
+  // callout, che components/CustomBlock.tsx disegna al posto del segnaposto
+  const customBlocks = React.useMemo(
+    () => ({
+      scrapbooks: byBlockId(getScrapbooks(recordMap)),
+      lockScreens: byBlockId(getLockScreens(recordMap, siteMapPageUrl)),
+      appRows: byBlockId(getAppRows(recordMap))
+    }),
     [recordMap, siteMapPageUrl]
   )
-  const [lockMounts, setLockMounts] = React.useState<
-    Array<{
-      key: string
-      node: HTMLElement
-      data: (typeof lockScreens)[number]
-    }>
-  >([])
-
-  React.useEffect(() => {
-    const mounts: Array<{
-      key: string
-      node: HTMLElement
-      data: (typeof lockScreens)[number]
-    }> = []
-    for (const data of lockScreens) {
-      const host = document.querySelector<HTMLElement>(
-        `.notion-lockscreen_co.notion-block-${data.blockId}`
-      )
-      if (!host) continue
-      const node = document.createElement('div')
-      node.className = 'g-lock-mount'
-      host.append(node)
-      mounts.push({ key: data.blockId, node, data })
-    }
-    setLockMounts(mounts)
-    return () => {
-      for (const mount of mounts) mount.node.remove()
-      setLockMounts([])
-    }
-  }, [lockScreens])
-
-  // Merch: i segnalibri 🛍️ (vedi lib/notion.ts e lib/appstore.ts) diventano
-  // righe in stile App Store (components/AppRow.tsx), con lo stesso sistema
-  // del Raccoglitore: un contenitore nel callout riempito con un portale.
-  const appRows = React.useMemo(() => getAppRows(recordMap), [recordMap])
-  const [appMounts, setAppMounts] = React.useState<
-    Array<{ key: string; node: HTMLElement; data: (typeof appRows)[number] }>
-  >([])
-
-  React.useEffect(() => {
-    const mounts: Array<{
-      key: string
-      node: HTMLElement
-      data: (typeof appRows)[number]
-    }> = []
-    for (const data of appRows) {
-      const host = document.querySelector<HTMLElement>(
-        `.notion-appstore_co.notion-block-${data.blockId}`
-      )
-      if (!host) continue
-      const node = document.createElement('div')
-      node.className = 'g-app-mount'
-      host.append(node)
-      mounts.push({ key: data.blockId, node, data })
-    }
-    setAppMounts(mounts)
-    return () => {
-      for (const mount of mounts) mount.node.remove()
-      setAppMounts([])
-    }
-  }, [appRows])
 
   return (
     <>
       {isLiteMode && <BodyClassName className='notion-lite' />}
 
-      <NotionRenderer
-        bodyClassName={cs(pageId === site.rootNotionPageId && 'index-page')}
-        darkMode={isDarkMode}
-        components={notionRendererComponents}
-        recordMap={recordMap}
-        rootPageId={site.rootNotionPageId}
-        rootDomain={site.domain}
-        fullPage={!isLiteMode}
-        previewImages={!!recordMap.preview_images}
-        showCollectionViewDropdown={false}
-        showTableOfContents={false}
-        minTableOfContentsItems={minTableOfContentsItems}
-        defaultPageIcon={config.defaultPageIcon}
-        defaultPageCover={config.defaultPageCover}
-        defaultPageCoverPosition={config.defaultPageCoverPosition}
-        mapPageUrl={siteMapPageUrl}
-        mapImageUrl={mapImageUrl}
-        searchNotion={config.isSearchEnabled ? searchNotion : undefined}
-        pageAside={pageAside}
-        footer={<Footer />}
-      />
-
-      {lockMounts.map(({ key, node, data }) =>
-        createPortal(
-          <LockScreen
-            variant={data.variant}
-            label={data.label}
-            big={data.big}
-            wallpaper={data.wallpaper}
-            notifications={data.notifications}
-          />,
-          node,
-          key
-        )
-      )}
-
-      {appMounts.map(({ key, node, data }) =>
-        createPortal(
-          <AppRow
-            title={data.title}
-            subtitle={data.subtitle}
-            button={data.button}
-            note={data.note}
-            link={data.link}
-            icon={data.icon}
-          />,
-          node,
-          key
-        )
-      )}
-
-      {scrapbookMounts.map(({ key, node, data }) =>
-        createPortal(
-          <Scrapbook
-            title={data.title}
-            variant={data.variant}
-            downloadable={data.downloadable}
-            items={data.items}
-          />,
-          node,
-          key
-        )
-      )}
+      <CustomBlocksContext value={customBlocks}>
+        <NotionRenderer
+          bodyClassName={cs(pageId === site.rootNotionPageId && 'index-page')}
+          darkMode={isDarkMode}
+          components={notionRendererComponents}
+          recordMap={recordMap}
+          rootPageId={site.rootNotionPageId}
+          rootDomain={site.domain}
+          fullPage={!isLiteMode}
+          previewImages={!!recordMap.preview_images}
+          showCollectionViewDropdown={false}
+          showTableOfContents={false}
+          minTableOfContentsItems={minTableOfContentsItems}
+          defaultPageIcon={config.defaultPageIcon}
+          defaultPageCover={config.defaultPageCover}
+          defaultPageCoverPosition={config.defaultPageCoverPosition}
+          mapPageUrl={siteMapPageUrl}
+          mapImageUrl={mapImageUrl}
+          searchNotion={config.isSearchEnabled ? searchNotion : undefined}
+          pageAside={pageAside}
+          footer={<Footer />}
+        />
+      </CustomBlocksContext>
     </>
   )
 }

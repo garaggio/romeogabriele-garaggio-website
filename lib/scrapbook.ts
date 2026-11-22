@@ -53,7 +53,8 @@ export function getScrapbooks(recordMap: ExtendedRecordMap): ScrapbookBlock[] {
 
     const items: ScrapbookItem[] = []
 
-    for (const childId of block.content ?? []) {
+    // le foto: il contenuto originale del callout (vedi embedCustomCallouts)
+    for (const childId of block.format?.g_content ?? block.content ?? []) {
       const child: any = getBlockValue(recordMap.block[childId])
       if (child?.type !== 'image') continue
 

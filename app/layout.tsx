@@ -75,6 +75,18 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang='it' suppressHydrationWarning>
+      <head>
+        {/* Il contenuto della pagina compare quando le immagini in vista
+            sono pronte (components/NotionPage.tsx toglie "g-wait"), con
+            una dissolvenza. Al massimo 1,5 s: poi compare comunque, anche se
+            il JavaScript non parte. Senza JavaScript non si nasconde nulla. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "document.documentElement.classList.add('g-wait');setTimeout(function(){document.documentElement.classList.remove('g-wait')},1500)"
+          }}
+        />
+      </head>
       <body>
         <Providers>{children}</Providers>
       </body>

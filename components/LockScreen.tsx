@@ -1,8 +1,10 @@
 'use client'
 
 import * as React from 'react'
+import { preload } from 'react-dom'
 
 import type { LockNotification, LockScreenData } from '@/lib/lockscreen'
+import { optimizedImage } from '@/lib/optimized-image'
 
 import styles from './LockScreen.module.css'
 
@@ -245,9 +247,16 @@ export function LockScreen({
     }
   }, [notifications])
 
-  const style = wallpaper
+  // sfondo ottimizzato (il riquadro è largo al massimo ~450 px) e annunciato
+  // nel <head>: si scarica insieme alla pagina. data-g-image dice alla
+  // pagina di aspettarlo prima di comparire (vedi NotionPage.tsx).
+  const wallpaperSrc = wallpaper ? optimizedImage(wallpaper, 1080) : undefined
+  if (wallpaperSrc) {
+    preload(wallpaperSrc, { as: 'image', fetchPriority: 'high' })
+  }
+  const style = wallpaperSrc
     ? ({
-        '--lock-wallpaper': `url("${wallpaper.replaceAll('"', '%22')}")`
+        '--lock-wallpaper': `url("${wallpaperSrc.replaceAll('"', '%22')}")`
       } as React.CSSProperties)
     : undefined
 
@@ -259,6 +268,7 @@ export function LockScreen({
         className={styles.mac}
         style={style}
         data-wallpaper={wallpaper ? '' : undefined}
+        data-g-image={wallpaperSrc}
         aria-label={[label, big].filter(Boolean).join(': ')}
       >
         {/* il riquadro esterno porta alone e filo di vetro (come le foto
@@ -285,6 +295,7 @@ export function LockScreen({
       className={styles.phone}
       style={style}
       data-wallpaper={wallpaper ? '' : undefined}
+      data-g-image={wallpaperSrc}
       aria-label={[label, big].filter(Boolean).join(': ')}
     >
       <span className={styles.island} aria-hidden='true' />

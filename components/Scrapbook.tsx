@@ -1,6 +1,10 @@
 'use client'
 
 import * as React from 'react'
+import { preload } from 'react-dom'
+
+import { optimizedImage, optimizedSrcSet } from '@/lib/optimized-image'
+import { lockPageScroll } from '@/lib/scroll-lock'
 
 import styles from './Scrapbook.module.css'
 
@@ -43,6 +47,14 @@ export interface ScrapbookProps {
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
+
+// foto ottimizzata (vedi lib/optimized-image.ts): la finestra è larga al
+// massimo circa 900 px, il browser sceglie la misura adatta allo schermo
+const photoSource = (url: string) => ({
+  src: optimizedImage(url, 1080),
+  srcSet: optimizedSrcSet(url),
+  sizes: '(max-width: 900px) 100vw, 900px'
+})
 
 // stessi margini dello zoom della galleria a scorrimento (react-notion-x)
 const zoomMargin = () => {
@@ -196,14 +208,30 @@ export function Scrapbook({
     }
   }, [count, go])
 
+  // La prima foto si scarica insieme alla pagina (il server la annuncia nel
+  // <head>), non quando il riquadro è già sullo schermo.
+  const first = items[clamp(initialIndex, 0, Math.max(0, count - 1))]
+  if (first) {
+    const source = photoSource(first.url)
+    preload(source.src, {
+      as: 'image',
+      imageSrcSet: source.srcSet,
+      imageSizes: source.sizes,
+      fetchPriority: 'high'
+    })
+  }
+
   // precarica la foto precedente e la successiva: lo sfoglio è immediato
   React.useEffect(() => {
     for (const i of [current - 1, current + 1]) {
       const near = items[i]
       if (near) {
         const img = new Image()
+        const source = photoSource(near.url)
         img.decoding = 'async'
-        img.src = near.url
+        if (source.srcSet) img.srcset = source.srcSet
+        img.sizes = source.sizes
+        img.src = source.src
       }
     }
   }, [current, items])
@@ -246,35 +274,9 @@ export function Scrapbook({
       })
     )
 
-    // la pagina resta ferma finché la foto non è tornata al suo posto:
-    // niente rotellina, trackpad, dito né tasti di scorrimento
-    const scrollKeys = new Set([
-      ' ',
-      'ArrowUp',
-      'ArrowDown',
-      'PageUp',
-      'PageDown',
-      'Home',
-      'End'
-    ])
-    const blockScroll = (event: Event) => event.preventDefault()
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        close()
-      } else if (scrollKeys.has(event.key)) {
-        event.preventDefault()
-      }
-    }
-    const root = document.documentElement
-    const previousOverflow = root.style.overflow
-    const previousPadding = root.style.paddingRight
-    // la barra di scorrimento sparisce: compensiamo, così la pagina non salta
-    const scrollbar = window.innerWidth - root.clientWidth
-    root.style.overflow = 'hidden'
-    if (scrollbar > 0) root.style.paddingRight = `${scrollbar}px`
-    window.addEventListener('wheel', blockScroll, { passive: false })
-    window.addEventListener('touchmove', blockScroll, { passive: false })
-    window.addEventListener('keydown', onKey)
+    // la pagina resta ferma finché la foto non è tornata al suo posto
+    // (Esc chiude l'ingrandimento)
+    const unlock = lockPageScroll(() => close())
 
     let finished = false
     const close = () => {
@@ -289,11 +291,7 @@ export function Scrapbook({
         clone.remove()
         img.style.visibility = ''
         // solo ora, con la foto al suo posto, si torna a scorrere
-        window.removeEventListener('wheel', blockScroll)
-        window.removeEventListener('touchmove', blockScroll)
-        window.removeEventListener('keydown', onKey)
-        root.style.overflow = previousOverflow
-        root.style.paddingRight = previousPadding
+        unlock()
       }
       clone.addEventListener('transitionend', done, { once: true })
       setTimeout(done, 400) // se l'animazione è disattivata
@@ -450,7 +448,7 @@ export function Scrapbook({
                 ref={photoRef}
                 className={styles.photo}
                 data-dir={nav.dir || undefined}
-                src={item.url}
+                {...photoSource(item.url)}
                 alt={item.title}
                 decoding='async'
               />
@@ -460,7 +458,7 @@ export function Scrapbook({
               key={item.id}
               className={styles.photo}
               data-dir={nav.dir || undefined}
-              src={item.url}
+              {...photoSource(item.url)}
               alt={item.title}
               decoding='async'
             />

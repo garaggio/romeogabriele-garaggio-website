@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Guida Notion · Aggiornamento 4 (v5.0 definitiva)</title>
+    <!-- Quarta pagina di aggiornamento (versione definitiva v5.0) della guida "Come scrivere su Notion".
+     Si stampa in PDF con Chrome e si aggiunge in fondo alla guida. -->
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 17mm 20mm;
+      }
+      :root {
+        --blue: #0a1a9e;
+        --yellow: #ffd83a;
+        --red: #b3121c;
+        --ink: #17181c;
+        --muted: #5b5e69;
+        --line: #dfe1e8;
+        --soft: #f4f5f9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body {
+        margin: 0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        font-size: 10.5pt;
+        line-height: 1.5;
+      }
+      h2 {
+        font-size: 17pt;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin: 0 0 3mm;
+        padding-top: 2mm;
+        color: var(--blue);
+        break-after: avoid;
+      }
+      h2 .n {
+        display: inline-block;
+        min-width: 9mm;
+        color: var(--ink);
+        background: var(--yellow);
+        text-align: center;
+        border-radius: 2mm;
+        margin-right: 3mm;
+        font-size: 12pt;
+        padding: 0.6mm 1.5mm;
+        vertical-align: 2pt;
+      }
+      h3 {
+        font-size: 11.5pt;
+        margin: 5mm 0 1.5mm;
+        break-after: avoid;
+        color: var(--ink);
+      }
+      p {
+        margin: 0 0 2.5mm;
+      }
+      section {
+        margin-bottom: 7mm;
+      }
+      ul {
+        margin: 0 0 3mm;
+        padding-left: 5mm;
+      }
+      li {
+        margin-bottom: 1mm;
+      }
+      .k {
+        font-family: Menlo, monospace;
+        font-size: 9pt;
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 1.2mm;
+        padding: 0.2mm 1.3mm;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .tip {
+        border-left: 1.2mm solid var(--yellow);
+        background: #fffbea;
+        padding: 2.5mm 4mm;
+        border-radius: 0 2mm 2mm 0;
+        margin: 3mm 0;
+        break-inside: avoid;
+      }
+      .tip b:first-child {
+        display: block;
+        font-size: 8pt;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 0.5mm;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9.5pt;
+        margin: 2mm 0 4mm;
+      }
+      th {
+        text-align: left;
+        font-size: 7.5pt;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1.5px solid var(--ink);
+        padding: 1.5mm 2mm;
+      }
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 2mm;
+        vertical-align: top;
+      }
+      tr {
+        break-inside: avoid;
+      }
+      td:first-child {
+        font-weight: 700;
+        width: 34%;
+      }
+      .where {
+        display: block;
+        margin-top: 0.8mm;
+        font-size: 8.5pt;
+        color: var(--muted);
+      }
+      .app {
+        display: grid;
+        grid-template-columns: 14mm 1fr auto;
+        gap: 4mm;
+        align-items: center;
+        padding: 3mm 4mm;
+        border-radius: 3mm;
+        background: #0d1670;
+        color: #fff;
+        margin: 2mm 0 1mm;
+        break-inside: avoid;
+      }
+      .app .ic {
+        width: 14mm;
+        height: 14mm;
+        border-radius: 22.5%;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        color: #1428c8;
+        font-weight: 800;
+        font-size: 13pt;
+      }
+      .app b {
+        display: block;
+        font-size: 11pt;
+      }
+      .app small {
+        color: rgba(235, 235, 245, 0.6);
+        font-size: 9pt;
+      }
+      .app .get {
+        background: #f2f2f7;
+        color: #1428c8;
+        font-weight: 700;
+        border-radius: 99px;
+        padding: 1.5mm 4.5mm;
+        font-size: 9.5pt;
+        text-align: center;
+      }
+      .app .nt {
+        display: block;
+        text-align: center;
+        color: rgba(235, 235, 245, 0.55);
+        font-size: 6.5pt;
+        margin-top: 1mm;
+      }
+      .phone {
+        width: 52mm;
+        aspect-ratio: 9 / 18.5;
+        border-radius: 9mm;
+        padding: 0 3mm;
+        margin: 0 auto;
+        background:
+          radial-gradient(120% 70% at 20% 10%, #6cbcec, transparent 55%),
+          radial-gradient(120% 80% at 90% 85%, #ffd83a, transparent 45%),
+          linear-gradient(160deg, #1428c8, #050d5c);
+        box-shadow: 0 0 0 1.6mm #0b0b0f;
+        color: #fff;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .phone .isl {
+        position: absolute;
+        top: 2mm;
+        left: 50%;
+        width: 15mm;
+        height: 4.5mm;
+        margin-left: -7.5mm;
+        background: #000;
+        border-radius: 9mm;
+      }
+      .phone .lb {
+        margin-top: 11mm;
+        font-size: 8pt;
+        font-weight: 600;
+      }
+      .phone .bg {
+        font-size: 24pt;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .phone .nt {
+        margin-top: auto;
+        display: grid;
+        grid-template-columns: 6mm 1fr;
+        gap: 2mm;
+        align-items: center;
+        text-align: left;
+        background: rgba(28, 28, 32, 0.5);
+        border-radius: 3.5mm;
+        padding: 2mm;
+        font-size: 6pt;
+      }
+      .phone .nt + .nt {
+        margin-top: 1.5mm;
+      }
+      .phone .ic {
+        width: 6mm;
+        height: 6mm;
+        border-radius: 1.4mm;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 9pt;
+      }
+      .phone .hb {
+        width: 16mm;
+        height: 0.9mm;
+        border-radius: 1mm;
+        background: #fff;
+        margin: 6mm auto 2mm;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 48mm;
+        gap: 6mm;
+        align-items: start;
+      }
+      .warn {
+        border-left: 1.2mm solid #b3121c;
+        background: #fdf0f0;
+        padding: 2.5mm 4mm;
+        border-radius: 0 2mm 2mm 0;
+        margin: 3mm 0;
+        break-inside: avoid;
+      }
+      .warn b:first-child {
+        display: block;
+        font-size: 8pt;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 0.5mm;
+      }
+      .mk {
+        display: inline-block;
+        background: #1b1b1d;
+        border-radius: 1mm;
+        padding: 0 0.6mm;
+        line-height: 1.25;
+      }
+      .render {
+        width: 46mm;
+        border-radius: 3mm;
+        justify-self: end;
+      }
+      .page-break {
+        break-before: page;
+      }
+      /* riepilogo: tabella più compatta, così sta in una pagina */
+      .summary table {
+        font-size: 9pt;
+      }
+      .summary td {
+        padding: 1.3mm 2mm;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h2><span class="n">24</span>Scaricare le foto (⬇️)</h2>
+      <p>
+        Nelle gallerie che vuoi rendere scaricabili (per esempio nel
+        <b>press kit</b>) compare un pulsante che scarica la foto
+        <b>originale</b>, con il suo nome, come vero download. Funziona in
+        entrambe le gallerie e si attiva solo dove metti il segno
+        <span class="k">⬇️</span> (va bene anche <span class="k">📥</span>).
+      </p>
+      <table>
+        <tr>
+          <th>Galleria</th>
+          <th>Cosa scrivi in Notion</th>
+          <th>Cosa compare sul sito</th>
+        </tr>
+        <tr>
+          <td><b>Finestra</b> 🗂️ / 🗃️</td>
+          <td>
+            Il segno in un punto qualsiasi del titolo:
+            <span class="k">🗃️ Press kit ⬇️</span>
+          </td>
+          <td>
+            Pulsante <b>Scarica</b> sotto il contatore «1 di 5»: scarica la foto
+            mostrata.
+          </td>
+        </tr>
+        <tr>
+          <td><b>Striscia</b> 🖼️</td>
+          <td>
+            Prima riga del callout <span class="k">🖼️ ⬇️</span> oppure
+            <span class="k">Galleria ⬇️</span>; con 🖼️ come icona basta una riga
+            <span class="k">⬇️</span>.
+          </td>
+          <td>
+            Su ogni foto un pulsante tondo con la freccia, in basso a destra:
+            col mouse compare passando sulla foto, su telefono e tablet è sempre
+            visibile.
+          </td>
+        </tr>
+      </table>
+      <div class="cols">
+        <div>
+          <p>
+            Il segno non si vede sul sito. Senza segno la galleria resta com'è,
+            senza pulsanti. Il clic sul pulsante scarica soltanto: il clic sulla
+            foto la ingrandisce come sempre.
+          </p>
+          <div class="warn">
+            <b>Foto oltre 4 MB</b>
+            Per un limite di Vercel non passano dal sito: il pulsante apre la
+            foto da Notion in una nuova scheda, da cui si salva a mano. Per il
+            press kit carica foto già pronte, sotto i 4 MB (un JPG di 3000 px di
+            qualità alta di solito basta).
+          </div>
+        </div>
+        <img
+          class="render"
+          src="img/scarica-raccoglitore.png"
+          alt="Galleria a finestra con il pulsante Scarica"
+        />
+      </div>
+    </section>
+
+    <section style="break-inside: avoid">
+      <h2><span class="n">25</span>Galleria a scorrimento 🖼️: i comandi</h2>
+      <p>
+        Aggiorna la sezione 8. In Notion non cambia nulla: questi sono i comandi
+        definitivi sul sito.
+      </p>
+      <div class="cols">
+        <ul>
+          <li>
+            <b>Trackpad e dito:</b> scorrimento continuo, libero, senza scatti
+            tra una foto e l'altra.
+          </li>
+          <li>
+            <b>Frecce</b> ai lati (col mouse): avanzano di una foto alla volta e
+            si spengono a inizio e fine striscia.
+          </li>
+          <li>
+            <b>Tasti ← →:</b> col puntatore del mouse sopra la galleria, senza
+            cliccare.
+          </li>
+          <li>
+            <b>Zoom:</b> clic sulla foto; mentre è ingrandita la pagina resta
+            ferma. Si chiude con un clic o con Esc.
+          </li>
+          <li>
+            <b>Ombre:</b> morbide anche ai lati, pure dentro colonne e toggle;
+            le foto che scorrono svaniscono sfumate ai bordi.
+          </li>
+          <li>
+            Lo scorrimento verticale sopra la galleria muove la pagina, come
+            ovunque.
+          </li>
+        </ul>
+        <img
+          class="render"
+          src="img/scarica-galleria.png"
+          alt="Galleria a scorrimento con frecce e pulsante di download"
+        />
+      </div>
+    </section>
+
+    <section style="break-inside: avoid">
+      <h2>
+        <span class="n">26</span>Menu tasto destro: dove si apre
+        <span class="mk">🖱️</span>
+      </h2>
+      <p>
+        Aggiorna la sezione 10. All'apertura della pagina il menu sta
+        <b>al centro della foto</b>. Un clic o il tasto destro sulla foto lo
+        riaprono nel punto premuto, come prima. Se vuoi un punto preciso scrivi
+        ancora i due numeri dopo il segno, in percentuale da sinistra e
+        dall'alto: <span class="mk">🖱️</span> <span class="k">60 25</span>.
+        Senza numeri: al centro.
+      </p>
+    </section>
+
+    <section style="break-inside: avoid">
+      <h2><span class="n">27</span>Caricamento e protezione</h2>
+      <p>Novità senza nulla da fare in Notion.</p>
+      <ul>
+        <li>
+          <b>Pagina pronta all'arrivo:</b> notifiche, galleria a finestra e
+          righe App Store arrivano già nella pagina (non compaiono più un attimo
+          dopo). Il contenuto si mostra con una breve dissolvenza quando le foto
+          visibili sono pronte, al massimo dopo 1,5 secondi.
+        </li>
+        <li>
+          <b>Foto leggere:</b> le foto di gallerie e notifiche vengono ridotte
+          alla misura dello schermo e compresse in automatico; puoi caricare in
+          Notion le foto grandi, senza prepararle. I download danno sempre
+          l'originale.
+        </li>
+        <li>
+          <b>Scorciatoie bloccate:</b> salva (⌘S), stampa (⌘P) e codice sorgente
+          (⌘U), anche con Ctrl su Windows. Chi stampa dal menu File ottiene solo
+          un foglio con «Romeo Gabriele | Studio Garaggio — garaggio.art».
+        </li>
+        <li>
+          <b>Copia:</b> come prima, testo e foto non si copiano né si
+          trascinano. È un deterrente: screenshot e menu del browser restano
+          possibili.
+        </li>
+        <li>
+          <b>Link interni nelle notifiche:</b> aprono la pagina con un
+          caricamento completo, senza lo scorrimento verso il titolo.
+        </li>
+      </ul>
+    </section>
+
+    <section class="page-break summary">
+      <h2><span class="n">28</span>Riepilogo: tutti i segni</h2>
+      <p>
+        Il promemoria di tutto ciò che si scrive in Notion per ottenere gli
+        elementi del sito. Il numero rimanda alla sezione della guida.
+      </p>
+      <table>
+        <tr>
+          <th>Segno</th>
+          <th>Dove si scrive</th>
+          <th>Risultato</th>
+          <th>Sez.</th>
+        </tr>
+        <tr>
+          <td>
+            <span class="k">🖼️</span> <span class="k">📷</span>
+            <span class="k">📸</span> «Galleria»
+          </td>
+          <td>Icona o prima riga del callout, foto dentro</td>
+          <td>Galleria a scorrimento orizzontale</td>
+          <td>8, 25</td>
+        </tr>
+        <tr>
+          <td>
+            <span class="k">🗂️</span> <span class="k">📇</span> «Raccoglitore»
+          </td>
+          <td>Icona o prima riga del callout, foto dentro</td>
+          <td>
+            Galleria a finestra Mac classica; il testo dopo il segno è il titolo
+          </td>
+          <td>9, 17</td>
+        </tr>
+        <tr>
+          <td><span class="k">🗃️</span></td>
+          <td>Come 🗂️</td>
+          <td>Galleria a finestra «Platinum ritoccato»</td>
+          <td>9, 17</td>
+        </tr>
+        <tr>
+          <td><span class="k">⬇️</span> <span class="k">📥</span></td>
+          <td>Insieme al segno di una galleria</td>
+          <td>Pulsante per scaricare le foto originali</td>
+          <td>24</td>
+        </tr>
+        <tr>
+          <td><span class="mk">🖱️</span> (+ <span class="k">60 25</span>)</td>
+          <td>
+            Didascalia della foto con un database subito sotto; icona del
+            callout; nome del database
+          </td>
+          <td>
+            Menu tasto destro del Mac sopra la foto (al centro, o nel punto
+            indicato)
+          </td>
+          <td>10, 26</td>
+        </tr>
+        <tr>
+          <td><span class="k">---</span> <span class="k">—</span></td>
+          <td>Titolo di una riga del database del menu</td>
+          <td>Linea di separazione nel menu</td>
+          <td>23</td>
+        </tr>
+        <tr>
+          <td><span class="k">🔔</span></td>
+          <td>
+            Prima riga del callout: <span class="k">🔔 Piccolo | Grande</span>
+          </td>
+          <td>Riquadro notifiche in stile macOS</td>
+          <td>21</td>
+        </tr>
+        <tr>
+          <td><span class="k">🔒</span></td>
+          <td>Come 🔔</td>
+          <td>Schermata di blocco iPhone con notifiche</td>
+          <td>21</td>
+        </tr>
+        <tr>
+          <td><span class="k">emoji Titolo | quando | testo</span></td>
+          <td>Ogni riga dentro il callout 🔔/🔒</td>
+          <td>Una notifica (cliccabile con un link o una menzione @)</td>
+          <td>21</td>
+        </tr>
+        <tr>
+          <td><span class="k">// Testo</span></td>
+          <td>Riga dentro il callout 🔔/🔒 (o un titolo di Notion)</td>
+          <td>Divisorio grande come «Centro notifiche»</td>
+          <td>21</td>
+        </tr>
+        <tr>
+          <td><span class="k">🛍️</span></td>
+          <td>
+            Didascalia di un segnalibro (bookmark); icona dall'immagine subito
+            sopra
+          </td>
+          <td>Riga in stile App Store con «Ottieni»</td>
+          <td>19</td>
+        </tr>
+        <tr>
+          <td><span class="k">👁️</span> (o nessun segno)</td>
+          <td>Didascalia di un segnalibro</td>
+          <td>Anteprima in stile Quick Look</td>
+          <td>19</td>
+        </tr>
+        <tr>
+          <td><span class="k">🙈</span></td>
+          <td>Icona di un callout con dentro le sottopagine</td>
+          <td>Sottopagine nascoste, raggiungibili solo dai link</td>
+          <td>22</td>
+        </tr>
+      </table>
+      <div class="tip">
+        <b>Se un segno non funziona</b>
+        Controlla che sia proprio l'emoji indicata (non un'icona personalizzata)
+        e che le foto siano <i>dentro</i> il callout, rientrate, non sotto di
+        esso. Dopo una modifica in Notion il sito si aggiorna da solo in pochi
+        secondi; se non la vedi, ricarica la pagina.
+      </div>
+    </section>
+  </body>
+</html>

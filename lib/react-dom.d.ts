@@ -1,12 +1,17 @@
 // Tipi minimi per react-dom (il pacchetto @types/react-dom non è installato):
-// dichiariamo solo createPortal, usato da components/NotionPage.tsx per il
-// Raccoglitore.
+// dichiariamo solo preload, con cui galleria retrò e notifiche annunciano
+// nel <head> le foto da scaricare subito (components/Scrapbook.tsx e
+// components/LockScreen.tsx).
 declare module 'react-dom' {
-  import type { ReactNode, ReactPortal } from 'react'
-
-  export function createPortal(
-    children: ReactNode,
-    container: Element | DocumentFragment,
-    key?: string | null
-  ): ReactPortal
+  export function preload(
+    href: string,
+    options: {
+      as: 'image' | 'font' | 'style' | 'script' | 'fetch'
+      fetchPriority?: 'high' | 'low' | 'auto'
+      imageSrcSet?: string
+      imageSizes?: string
+      crossOrigin?: string
+      type?: string
+    }
+  ): void
 }

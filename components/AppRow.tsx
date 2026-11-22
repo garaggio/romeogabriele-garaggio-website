@@ -4,6 +4,7 @@ import Link from 'next/link'
 import * as React from 'react'
 
 import type { AppRowData } from '@/lib/appstore'
+import { optimizedImage } from '@/lib/optimized-image'
 
 import styles from './AppRow.module.css'
 
@@ -76,7 +77,12 @@ export function AppRow({
     >
       <span className={styles.iconTile}>
         {icon ? (
-          <img className={styles.icon} src={icon} alt='' draggable={false} />
+          <img
+            className={styles.icon}
+            src={optimizedImage(icon, 256)}
+            alt=''
+            draggable={false}
+          />
         ) : (
           <span className={styles.iconFallback} aria-hidden='true'>
             {title.trim().charAt(0).toUpperCase()}

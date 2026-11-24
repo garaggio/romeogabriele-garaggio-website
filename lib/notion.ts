@@ -111,6 +111,10 @@ export async function getPage(pageId: string): Promise<ExtendedRecordMap> {
 
   hideSecretCallouts(recordMap)
 
+  // dopo i callout 🙈 (il testo nascosto non si conta), prima che gli altri
+  // segni trasformino i blocchi
+  markReadingTime(recordMap)
+
   await markYouTubeLinks(recordMap)
 
   applyBookmarkCaptions(recordMap)
@@ -1069,6 +1073,82 @@ function hideSecretCallouts(recordMap: ExtendedRecordMap) {
       parent.content = parent.content.filter((id: string) => id !== block.id)
     }
   }
+}
+
+// Tempo di lettura 📖: un paragrafo con solo 📖, in un punto qualsiasi della
+// pagina, fa comparire sotto il titolo «4 MIN DI LETTURA». Il paragrafo non
+// si vede; togliendolo sparisce anche la scritta. Si contano:
+// - le parole di tutto il testo della pagina (titoli, paragrafi, elenchi,
+//   citazioni, callout, didascalie), 200 al minuto, un ritmo medio in italiano
+// - le foto: 12 secondi la prima, poi un secondo in meno per ognuna, fino a
+//   3 secondi (lo sguardo si ferma sulle prime, scorre più veloce sulle altre)
+// Le sottopagine e i database non contano. Al minimo 1 minuto.
+// Al posto del paragrafo, in cima alla pagina, un blocco segnaposto
+// (components/CustomBlock.tsx lo disegna).
+const readingTimeIcons = new Set(['📖', '📖️'])
+const wordsPerMinute = 200
+// blocchi che sono altre pagine o database: il loro testo non si legge qui
+const notReadHere = new Set([
+  'page',
+  'collection_view',
+  'collection_view_page',
+  'alias',
+  'code'
+])
+
+function markReadingTime(recordMap: ExtendedRecordMap) {
+  const rootId = Object.keys(recordMap.block)[0]
+  const root = rootId ? blockValue(recordMap, rootId) : undefined
+  if (!root?.content?.length) return
+
+  const markers: Array<{ id: string; parent: any }> = []
+  let words = 0
+  let images = 0
+  const countWords = (text: string) =>
+    text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length
+
+  const visit = (parent: any) => {
+    for (const id of parent.content ?? []) {
+      const block = blockValue(recordMap, id)
+      if (!block || block.alive === false || notReadHere.has(block.type)) {
+        continue
+      }
+      const text = getTextContent(block.properties?.title).trim()
+      if (block.type === 'text' && readingTimeIcons.has(text)) {
+        markers.push({ id, parent })
+        continue
+      }
+      words += countWords(text)
+      words += countWords(getTextContent(block.properties?.caption))
+      if (block.type === 'image') images += 1
+      visit(block)
+    }
+  }
+  visit(root)
+  if (!markers.length) return
+
+  // le foto in secondi: 12, 11, 10… poi sempre 3
+  let imageSeconds = 0
+  for (let i = 0; i < images; i += 1) imageSeconds += Math.max(3, 12 - i)
+  const seconds = (words / wordsPerMinute) * 60 + imageSeconds
+  const minutes = Math.max(1, Math.ceil(seconds / 60))
+
+  for (const { id, parent } of markers) {
+    parent.content = parent.content.filter((other: string) => other !== id)
+  }
+  const placeholder = `${root.id}-reading-time`
+  storeBlock(recordMap, recordMap.block[rootId!], {
+    id: placeholder,
+    type: 'code',
+    version: 1,
+    alive: true,
+    parent_id: root.id,
+    parent_table: 'block',
+    space_id: root.space_id,
+    properties: { title: [['']], language: [['garaggio']] },
+    format: { g_kind: 'readingtime', g_minutes: minutes }
+  })
+  root.content = [placeholder, ...root.content]
 }
 
 export async function search(params: SearchParams): Promise<SearchResults> {

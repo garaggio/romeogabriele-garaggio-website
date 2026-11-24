@@ -20,9 +20,10 @@ import styles from './Television.module.css'
 // - in basso: la barra sottile per andare avanti e indietro e la fascia
 //   colorata della copertina:  VOL −  VOL +  ▶ play/pausa  ⛶ schermo intero
 // - scorrendo di lato (trackpad o dito) si passa al video precedente o
-//   successivo, un video per gesto, come nel Raccoglitore delle foto. Vale
-//   sulla copertina e sulle fasce del televisore: sopra il video che va,
-//   clic e gesti sono del player di YouTube (i suoi comandi restano attivi)
+//   successivo, un video per gesto, come nel Raccoglitore delle foto. Col
+//   mouse, sopra il video che va, clic e gesti sono del player di YouTube (i
+//   suoi comandi restano attivi); sul telefono un velo trasparente tiene
+//   tocco e scorrimento al televisore
 // - schermo intero: solo il video, senza l'effetto del televisore
 // Tastiera (televisore selezionato): spazio play/pausa, ← → 5 secondi,
 // ↑ ↓ volume, F schermo intero, Esc per uscire.
@@ -464,8 +465,7 @@ export function Television({ videos, label }: TelevisionProps) {
 
   React.useEffect(() => {
     const tv = rootRef.current
-    const picture = pictureRef.current
-    if (!tv || !picture) return
+    if (!tv) return
 
     const threshold = 24 // px di spinta per far partire il passo
     const pause = 140 // ms senza eventi = gesto finito
@@ -512,22 +512,46 @@ export function Television({ videos, label }: TelevisionProps) {
       }
     }
 
+    // Dito: su tutto il televisore (non sulle barre di avanzamento, che si
+    // trascinano). Appena il gesto è chiaramente laterale il sito lo tiene per
+    // sé (preventDefault): la pagina non si sposta di lato e il browser non lo
+    // prende per "pagina indietro". Se è verticale, scorre la pagina.
     let startX = 0
     let startY = 0
     let tracking = false
+    // 0 non ancora deciso, 1 laterale (del televisore), -1 verticale (pagina)
+    let axis = 0
     const onTouchStart = (event: TouchEvent) => {
       const t = event.touches[0]
-      tracking = event.touches.length === 1 && !!t
+      const onSlider =
+        event.target instanceof Element &&
+        !!event.target.closest('[role="slider"]')
+      tracking = event.touches.length === 1 && !!t && !onSlider
+      axis = 0
       if (t) {
         startX = t.clientX
         startY = t.clientY
       }
     }
+    const onTouchMove = (event: TouchEvent) => {
+      const t = event.touches[0]
+      if (!tracking || !t) return
+      if (event.touches.length > 1) {
+        tracking = false
+        return
+      }
+      const dx = t.clientX - startX
+      const dy = t.clientY - startY
+      if (axis === 0 && Math.hypot(dx, dy) > 8) {
+        axis = Math.abs(dx) > Math.abs(dy) ? 1 : -1
+      }
+      if (axis === 1 && event.cancelable) event.preventDefault()
+    }
     const onTouchEnd = (event: TouchEvent) => {
       const t = event.changedTouches[0]
       if (!tracking || !t) return
       tracking = false
-      if (fullscreenRef.current) return
+      if (fullscreenRef.current || axis !== 1) return
       const dx = t.clientX - startX
       const dy = t.clientY - startY
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
@@ -536,6 +560,9 @@ export function Television({ videos, label }: TelevisionProps) {
         swipedRef.current = true
         setTimeout(() => (swipedRef.current = false), 400)
       }
+    }
+    const onTouchCancel = () => {
+      tracking = false
     }
 
     // Sopra il video che va il gesto lo riceve il player di YouTube e il sito
@@ -565,15 +592,19 @@ export function Television({ videos, label }: TelevisionProps) {
     tv.addEventListener('wheel', onWheel, { passive: false })
     tv.addEventListener('pointerenter', blockHistorySwipe)
     document.addEventListener('pointerover', onPageOver)
-    picture.addEventListener('touchstart', onTouchStart, { passive: true })
-    picture.addEventListener('touchend', onTouchEnd, { passive: true })
+    tv.addEventListener('touchstart', onTouchStart, { passive: true })
+    tv.addEventListener('touchmove', onTouchMove, { passive: false })
+    tv.addEventListener('touchend', onTouchEnd, { passive: true })
+    tv.addEventListener('touchcancel', onTouchCancel, { passive: true })
     return () => {
       allowHistorySwipe()
       tv.removeEventListener('pointerenter', blockHistorySwipe)
       document.removeEventListener('pointerover', onPageOver)
       tv.removeEventListener('wheel', onWheel)
-      picture.removeEventListener('touchstart', onTouchStart)
-      picture.removeEventListener('touchend', onTouchEnd)
+      tv.removeEventListener('touchstart', onTouchStart)
+      tv.removeEventListener('touchmove', onTouchMove)
+      tv.removeEventListener('touchend', onTouchEnd)
+      tv.removeEventListener('touchcancel', onTouchCancel)
     }
   }, [count])
 
@@ -879,6 +910,19 @@ export function Television({ videos, label }: TelevisionProps) {
             {/* ---------- il video (a schermo intero va da solo) ---------- */}
             <div ref={pictureRef} className={styles.picture}>
               <div ref={stageRef} className={styles.player} />
+
+              {/* sul telefono, mentre il video va o è in pausa: un velo
+                trasparente sopra il player di YouTube. Il tocco mette in pausa
+                o fa ripartire, lo scorrimento laterale cambia video: senza,
+                il gesto finirebbe al player e la pagina si sposterebbe.
+                Col mouse non c'è (CSS): restano i comandi di YouTube */}
+              {(phase === 'playing' || phase === 'paused') && (
+                <div
+                  className={styles.touchLayer}
+                  onClick={onPictureClick}
+                  aria-hidden='true'
+                />
+              )}
 
               {/* mentre il video va, sopra non c'è niente del sito: i clic
                 arrivano al player di YouTube e i suoi comandi a schermo

@@ -75,6 +75,10 @@ body {
 
 html {
   background: #0a1260; /* se qualcosa non è coperto, resta blu e non bianco */
+  /* anche qui, oltre che sul body: su iPhone gli aloni che escono dai bordi
+     (televisore, foto) non devono far spostare la pagina di lato col dito */
+  overflow-x: clip;
+  touch-action: manipulation; /* niente zoom col doppio tocco sul telefono */
 }
 
 /* ---------- Font: Helvetica ovunque ---------- */
@@ -236,6 +240,38 @@ body .notion-app {
   margin-right: 0.45em;
   background: url('/cartella.png') center / contain no-repeat;
   vertical-align: -0.05em;
+}
+
+/* tempo di lettura 📖 (components/CustomBlock.tsx): subito sotto il titolo,
+   piccolo e spaziato come le scritte delle cartelle, appena trasparente */
+.g-reading-time {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  width: 100%;
+  margin: 0 0 1.4em;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.g-reading-time svg {
+  flex: none;
+  width: 1.25em;
+  height: 1.25em;
+  fill: none;
+  stroke: var(--g-yellow);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.index-page .g-reading-time {
+  justify-content: center;
 }
 
 /* home: titolo grande e centrato, con la luce di registrazione che respira */

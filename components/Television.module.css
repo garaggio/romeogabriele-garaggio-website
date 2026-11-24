@@ -42,6 +42,9 @@
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  /* col dito: lo scorrimento verticale resta alla pagina, quello laterale
+     cambia video (Television.tsx), la pagina non si sposta di lato */
+  touch-action: pan-y;
 }
 
 .tv *,
@@ -283,6 +286,22 @@
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+/* il velo trasparente sopra il video (vedi Television.tsx): solo sugli
+   schermi da toccare; col mouse i clic restano al player di YouTube */
+.touchLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: none;
+  touch-action: pan-y;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .touchLayer {
+    display: block;
+  }
 }
 
 /* l'incavo: il video sta un poco più in basso del televisore. Ombra interna
@@ -758,8 +777,17 @@
   background: #000000;
 }
 
+/* Il video che riempie la finestra (iPhone) è "position: fixed": nessun
+   contenitore sopra di lui deve fargli da riferimento o tagliarlo, sennò
+   Safari lo disegna nel riquadro del televisore, a scatti. container-type
+   (che serve alle misure in cqw) fa proprio questo: qui si spegne. */
 .tv[data-fullscreen='window'] {
   z-index: 1001;
+  container-type: normal;
+}
+
+.tv[data-fullscreen='window'] .screen {
+  overflow: visible;
 }
 
 /* a tutto schermo: niente alone né filo di luce del riquadro */
@@ -784,9 +812,10 @@
   position: fixed;
   inset: 0;
   z-index: 1001;
-  width: 100%;
-  height: 100%;
-  height: 100dvh;
+  /* i quattro bordi della finestra: segue da solo la barra di Safari che
+     compare e scompare, senza ricalcoli */
+  width: auto;
+  height: auto;
   aspect-ratio: auto;
   background: #000000;
 }

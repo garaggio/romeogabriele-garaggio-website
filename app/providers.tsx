@@ -8,10 +8,14 @@ import * as React from 'react'
 
 import { bootstrap } from '@/lib/bootstrap-client'
 import { fathomConfig, fathomId, posthogConfig, posthogId } from '@/lib/config'
+import { blockPinchZoom } from '@/lib/no-pinch-zoom'
 
 const themeClassNames = { dark: 'dark-mode', light: 'light-mode' }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  // niente zoom col pizzico, su tutto il sito (vedi lib/no-pinch-zoom.ts)
+  React.useEffect(() => blockPinchZoom(), [])
+
   return (
     // un solo tema: il sito ha sempre i suoi colori, a prescindere dal sistema
     <ThemeProvider

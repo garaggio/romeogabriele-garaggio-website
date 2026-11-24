@@ -67,6 +67,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // niente zoom con le dita sul telefono
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
   // il blu della barra in alto, anche per la barra del browser sul telefono
   themeColor: '#0a1a9e'

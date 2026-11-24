@@ -98,6 +98,20 @@ export function CustomBlock({ block }: { block: any }) {
       if (!data) return null
       return <Television label={data.label} videos={data.videos} />
     }
+    // tempo di lettura 📖 (calcolato dal server, lib/notion.ts)
+    case 'readingtime': {
+      const minutes = Number(block.format.g_minutes)
+      if (!minutes) return null
+      return (
+        <p className='g-reading-time'>
+          <svg viewBox='0 0 16 16' aria-hidden='true'>
+            <circle cx='8' cy='8' r='6.25' />
+            <path d='M8 4.6V8l2.3 1.5' />
+          </svg>
+          {minutes} min di lettura
+        </p>
+      )
+    }
     default:
       return null
   }

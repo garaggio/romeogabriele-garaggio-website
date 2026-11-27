@@ -5,6 +5,33 @@ const projectDir = path.dirname(fileURLToPath(import.meta.url))
 
 export default {
   staticPageGenerationTimeout: 300,
+  // niente "x-powered-by: Next.js": non serve dire a tutti con cosa è fatto
+  poweredByHeader: false,
+  // Intestazioni di sicurezza su tutte le pagine: i controlli automatici
+  // (Meta, Google, antivirus) le cercano per capire se un sito è curato.
+  // - il sito non si può mettere dentro la pagina di un altro sito (difesa
+  //   dalle pagine truffa che lo "incorniciano")
+  // - il browser non indovina il tipo dei file
+  // - agli altri siti arriva solo il dominio di provenienza, non la pagina
+  //   (YouTube lo vuole, vedi components/Television.tsx)
+  // - nessun accesso a fotocamera, microfono e posizione
+  headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()'
+          }
+        ]
+      }
+    ]
+  },
   // react-notion-x usa "react-image" per le emoji personalizzate nel testo:
   // lo sostituiamo con un'immagine semplice (lib/react-image.tsx), perché
   // l'originale fa comparire l'errore "Can't perform a React state update on

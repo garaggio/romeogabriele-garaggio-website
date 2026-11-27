@@ -354,6 +354,49 @@ export function NotionPage({
 
   const minTableOfContentsItems = 3
 
+  // Titolo a pezzi (➡️ in Notion, vedi lib/title-lines.ts): una riga per
+  // pezzo, ognuna con la sua freccia, frecce allineate una sotto l'altra.
+  // Grandezza del titolo e sottotitolo (🔠 in Notion, vedi markTitleOptions
+  // in lib/notion.ts): la grandezza è rispetto alla misura di oggi, il
+  // sottotitolo sta sotto il titolo, dentro l'intestazione. Senza ➡️ né 🔠 il
+  // titolo lo disegna react-notion-x come sempre.
+  const format = (block as any)?.format
+  const titleScale = Number(format?.g_title_scale) || undefined
+  const subtitle: string | undefined = format?.g_subtitle || undefined
+  const subtitleScale = Number(format?.g_subtitle_scale) || undefined
+  const titleLines: string[] | undefined =
+    format?.g_title_lines?.length > 1
+      ? format.g_title_lines
+      : titleScale || subtitle
+        ? [getBlockTitle(block, recordMap)]
+        : undefined
+  const pageTitle = titleLines ? (
+    <>
+      <span
+        className='g-title-lines'
+        style={titleScale ? { fontSize: `${titleScale}em` } : undefined}
+      >
+        {titleLines.map((line, i) => (
+          <span key={i} className='g-title-line'>
+            {line}
+          </span>
+        ))}
+      </span>
+      {subtitle && (
+        <span
+          className='g-page-subtitle'
+          style={
+            subtitleScale
+              ? { fontSize: `calc(var(--g-subtitle-size) * ${subtitleScale})` }
+              : undefined
+          }
+        >
+          {subtitle}
+        </span>
+      )}
+    </>
+  ) : undefined
+
   const pageAside = React.useMemo(
     () => (
       <PageAside block={block!} recordMap={recordMap} isBlogPost={isBlogPost} />
@@ -1051,6 +1094,7 @@ export function NotionPage({
           mapImageUrl={mapImageUrl}
           searchNotion={config.isSearchEnabled ? searchNotion : undefined}
           pageAside={pageAside}
+          pageTitle={pageTitle}
           footer={<Footer />}
         />
       </CustomBlocksContext>

@@ -281,7 +281,8 @@ body .notion-app {
   line-height: 1.05;
 }
 
-.index-page .notion-title::after {
+.index-page .notion-title::after,
+.index-page .g-title-line:last-child::after {
   content: '';
   display: inline-block;
   width: 0.3em;
@@ -303,6 +304,7 @@ body .notion-app {
 
 /* freccia-web.png è freccia.png ridotta (13 KB invece di 13 MB) */
 .notion-title::before,
+.g-title-line::before,
 .notion-page-link::before,
 details.notion-toggle > summary::before {
   content: '';
@@ -312,6 +314,59 @@ details.notion-toggle > summary::before {
   height: 0.7em;
   margin-right: 0.6em;
   background: url('/icons/freccia-web.png') center / contain no-repeat;
+}
+
+/* Titolo a pezzi (➡️ in Notion, vedi lib/title-lines.ts) o con la grandezza
+   scelta (🔠): una riga per pezzo, ognuna con la sua freccia. Il blocco delle
+   righe è centrato nella pagina, le righe partono tutte dallo stesso punto:
+   frecce una sotto l'altra e stessa distanza tra freccia e scritta. Se una
+   riga è troppo lunga e va a capo da sola, il seguito parte sotto la
+   scritta, non sotto la freccia. Nella home il pallino rosso va in fondo
+   all'ultima riga. */
+.g-title-lines {
+  --g-arrow-room: 1.03em; /* freccia 0.43em + spazio 0.6em */
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.g-title-line {
+  display: block;
+  padding-left: var(--g-arrow-room);
+  text-indent: calc(-1 * var(--g-arrow-room));
+}
+
+.notion-title:has(.g-title-line)::before,
+.index-page .notion-title:has(.g-title-line)::after {
+  display: none;
+}
+
+/* sottotitolo (🔠 in Notion): sotto il titolo, nell'intestazione, centrato
+   come lui, leggero. Ha la sua misura, non quella del titolo; la grandezza
+   scelta in Notion moltiplica --g-subtitle-size */
+.g-page-subtitle {
+  --g-subtitle-size: 22px; /* grandezza normale del sottotitolo (100%) */
+  --g-subtitle-gap: 0.1em; /* distanza dal titolo: 0 = attaccato */
+  display: block;
+  margin: var(--g-subtitle-gap) 0 0;
+  padding: 0;
+  color: #ffffff; /* bianco, come il titolo */
+  opacity: 0.85; /* 1 = pieno; più basso = più trasparente */
+  font-size: var(--g-subtitle-size);
+  font-weight: 300;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  text-align: center;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .g-page-subtitle {
+    --g-subtitle-size: 18px;
+  }
 }
 
 /* ---------- Cartelle: sotto-pagine ---------- */
@@ -788,7 +843,8 @@ details.notion-toggle > div {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .index-page .notion-title::after {
+  .index-page .notion-title::after,
+  .index-page .g-title-line:last-child::after {
     animation: none;
   }
 

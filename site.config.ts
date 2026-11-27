@@ -4,9 +4,13 @@ export default siteConfig({
   // the site's root Notion page (required)
   rootNotionPageId: '37e0e9fb28fd80089af3e62c7e0d2641',
 
-  // if you want to restrict pages to a single notion workspace (optional)
-  // (this should be a Notion ID; see the docs for how to extract this)
-  rootNotionSpaceId: null,
+  // Lo spazio Notion del sito: il sito mostra SOLO pagine di questo spazio.
+  // Senza, chiunque poteva aprire una sua pagina Notion pubblica sotto
+  // garaggio.art (es. garaggio.art/<id della sua pagina>), anche una pagina
+  // truffa: Meta, Google e antivirus l'avrebbero attribuita al dominio.
+  // Vale anche per l'immagine di anteprima e per il pulsante "Scarica".
+  // (È lo spazio che compare negli indirizzi dei file di Notion.)
+  rootNotionSpaceId: '0140e9fb-28fd-81d0-ac5f-0003f5308a1b',
 
   // basic site info (required)
   name: 'Romeo Gabriele | Studio Garaggio',

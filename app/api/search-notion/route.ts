@@ -1,4 +1,5 @@
 import type * as types from '@/lib/types'
+import { rootNotionPageId } from '@/lib/config'
 import { search } from '@/lib/notion'
 
 const maxBodySize = 1_000_000
@@ -120,7 +121,9 @@ function parseSearchParams(input: unknown): types.SearchParams | undefined {
   }
 
   return {
-    ancestorId,
+    // si cerca solo nelle pagine del sito, qualunque cosa chieda la richiesta:
+    // il sito non deve fare da motore di ricerca per altri spazi Notion
+    ancestorId: rootNotionPageId,
     query,
     limit: limit as number | undefined,
     searchSessionId: searchSessionId as string | undefined,

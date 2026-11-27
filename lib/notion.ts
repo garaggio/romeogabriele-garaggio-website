@@ -21,6 +21,12 @@ import { getTweetsMap } from './get-tweets'
 import { notion } from './notion-api'
 import { getPreviewImageMap } from './preview-images'
 import { youtubeIdFrom, youtubeStartFrom } from './television'
+import {
+  applyTitleOptions,
+  parseTitleOptions,
+  splitPageTitles,
+  type TitleOptions
+} from './title-lines'
 
 const getNavigationLinkPages = pMemoize(
   async (): Promise<ExtendedRecordMap[]> => {
@@ -96,6 +102,9 @@ export async function getPage(pageId: string): Promise<ExtendedRecordMap> {
     }
   }
 
+  // titoli con ➡️: a capo con una nuova freccia (lib/title-lines.ts)
+  splitPageTitles(recordMap)
+
   await resolveCustomEmojis(recordMap)
 
   if (isPreviewImageSupportEnabled) {
@@ -110,6 +119,10 @@ export async function getPage(pageId: string): Promise<ExtendedRecordMap> {
   markLockScreens(recordMap)
 
   hideSecretCallouts(recordMap)
+
+  // grandezza del titolo e sottotitolo (🔠); prima del tempo di lettura, che
+  // così non conta il paragrafo del segno
+  markTitleOptions(recordMap)
 
   // dopo i callout 🙈 (il testo nascosto non si conta), prima che gli altri
   // segni trasformino i blocchi
@@ -1151,6 +1164,74 @@ function markReadingTime(recordMap: ExtendedRecordMap) {
   root.content = [placeholder, ...root.content]
 }
 
+// Grandezza del titolo e sottotitolo 🔠: un paragrafo con 🔠, in un punto
+// qualsiasi della pagina (sul sito non si vede). Due modi di scriverlo:
+//
+// 1) il sottotitolo così com'è, con 🔠 e la sua grandezza in fondo:
+//      Musicista e produttore 🔠 150%      sottotitolo grande una volta e mezza
+//      Musicista e produttore 🔠           sottotitolo di grandezza normale
+//
+// 2) il paragrafo inizia con 🔠, campi separati da "|", tutti facoltativi:
+//      🔠 150%                             titolo grande una volta e mezza
+//      🔠 Testo                            sottotitolo
+//      🔠 80% | Testo | 90%                titolo, sottotitolo e sua grandezza
+//    (la prima percentuale è del titolo, quella dopo il testo del
+//    sottotitolo)
+//
+// La percentuale è rispetto alla misura di oggi (home e sottopagine hanno la
+// loro): 100% = com'è adesso. Nel sottotitolo si va a capo con Maiusc + Invio.
+// Le stesse scelte si possono scrivere in fondo al titolo della pagina
+// («PRESS KIT 🔠 150% | Sottotitolo», vedi lib/title-lines.ts): se ci sono
+// tutti e due, vince il titolo.
+// Senza 🔠 la pagina resta com'è. Grandezza e sottotitolo vanno nel format
+// della pagina (g_title_scale, g_subtitle, g_subtitle_scale): li disegna
+// NotionPage.tsx dentro l'intestazione, sotto il titolo e sopra la linea che
+// nelle sottopagine chiude l'intestazione.
+const titleOptionsMark = '🔠'
+
+function markTitleOptions(recordMap: ExtendedRecordMap) {
+  const rootId = Object.keys(recordMap.block)[0]
+  const root = rootId ? blockValue(recordMap, rootId) : undefined
+  if (!root?.content?.length) return
+
+  // il primo paragrafo con 🔠 della pagina (anche dentro toggle e callout);
+  // tutti i paragrafi con 🔠 spariscono
+  let options: TitleOptions | undefined
+  const visit = (parent: any) => {
+    // (togliere un segno crea un elenco nuovo: si scorre quello di prima)
+    for (const id of parent.content ?? []) {
+      const block = blockValue(recordMap, id)
+      if (!block || block.alive === false || notReadHere.has(block.type)) {
+        continue
+      }
+      const text = getTextContent(block.properties?.title).trim()
+      const at = block.type === 'text' ? text.indexOf(titleOptionsMark) : -1
+      if (at >= 0) {
+        const before = text.slice(0, at).trim()
+        const after = text.slice(at + titleOptionsMark.length).trim()
+        options ??= before
+          ? // 1) "Sottotitolo 🔠 150%"
+            {
+              subtitle: before,
+              subtitleScale: parseTitleOptions(after).titleScale
+            }
+          : // 2) "🔠 150% | Sottotitolo | 90%"
+            parseTitleOptions(after)
+        parent.content = parent.content.filter((other: string) => other !== id)
+        continue
+      }
+      visit(block)
+    }
+  }
+  visit(root)
+
+  // se il titolo della pagina ha già 🔠, vincono le scelte del titolo
+  if (options) applyTitleOptions(root, options)
+}
+
 export async function search(params: SearchParams): Promise<SearchResults> {
-  return notion.search(params)
+  const results = await notion.search(params)
+  // titoli puliti anche nei risultati della ricerca (niente ➡️ né 🔠)
+  if (results.recordMap) splitPageTitles(results.recordMap as any)
+  return results
 }

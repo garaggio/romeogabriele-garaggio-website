@@ -16,6 +16,8 @@ export interface PageMetadataInfo {
   isBlogPost: boolean
   socialImageUrl?: string
   title: string
+  /** nome della scheda del browser: titolo e sottotitolo 🔠, se c'è */
+  tabTitle: string
 }
 
 export function getPageMetadataInfo({
@@ -29,6 +31,13 @@ export function getPageMetadataInfo({
     (block && recordMap && getBlockTitle(block, recordMap)) ||
     site?.name ||
     config.name
+  // con il sottotitolo (🔠 in Notion, vedi markTitleOptions in lib/notion.ts)
+  // la scheda del browser mostra tutti e due, in testo semplice su una riga:
+  // «Romeo Gabriele \Garaggio\Studio»
+  const subtitle = String((block as any)?.format?.g_subtitle ?? '')
+    .replaceAll(/\s+/g, ' ')
+    .trim()
+  const tabTitle = subtitle ? `${title} ${subtitle}` : title
   const description =
     (block &&
       recordMap &&
@@ -56,7 +65,8 @@ export function getPageMetadataInfo({
     description,
     isBlogPost,
     socialImageUrl,
-    title
+    title,
+    tabTitle
   }
 }
 
@@ -67,12 +77,12 @@ export function createPageMetadata(pageProps: PageProps): Metadata {
     }
   }
 
-  const { canonicalPageUrl, description, socialImageUrl, title } =
+  const { canonicalPageUrl, description, socialImageUrl, title, tabTitle } =
     getPageMetadataInfo(pageProps)
   const { site } = pageProps
 
   return {
-    title,
+    title: tabTitle,
     description,
     robots: {
       index: true,

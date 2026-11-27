@@ -65,14 +65,14 @@ const watchUrl = (video: TelevisionVideo) => {
 }
 
 // perché YouTube non fa vedere un video (codici di errore del player)
-const errorReasons: Record<number, string> = {
-  2: 'LINK DEL VIDEO NON VALIDO',
-  5: 'IL BROWSER NON RIESCE A RIPRODURLO',
-  100: 'VIDEO PRIVATO O RIMOSSO',
-  101: 'INCORPORAMENTO DISATTIVATO SU YOUTUBE',
-  150: 'INCORPORAMENTO DISATTIVATO SU YOUTUBE',
-  153: 'YOUTUBE NON RICONOSCE IL SITO (ERRORE 153)'
-}
+const errorReasons = new Map([
+  [2, 'LINK DEL VIDEO NON VALIDO'],
+  [5, 'IL BROWSER NON RIESCE A RIPRODURLO'],
+  [100, 'VIDEO PRIVATO O RIMOSSO'],
+  [101, 'INCORPORAMENTO DISATTIVATO SU YOUTUBE'],
+  [150, 'INCORPORAMENTO DISATTIVATO SU YOUTUBE'],
+  [153, 'YOUTUBE NON RICONOSCE IL SITO (ERRORE 153)']
+])
 
 // schermo intero vero (Mac, Android, iPad); su iPhone non esiste per gli
 // elementi della pagina: lì il video riempie la finestra
@@ -761,16 +761,16 @@ export function Television({ videos, label }: TelevisionProps) {
     // i tasti sopra i pulsanti (Invio, spazio) restano ai pulsanti
     const onButton = (event.target as HTMLElement).closest('button, a')
     if (onButton && (event.key === ' ' || event.key === 'Enter')) return
-    const actions: Record<string, () => void> = {
-      ' ': togglePlay,
-      k: togglePlay,
-      ArrowLeft: () => seekBy(-5),
-      ArrowRight: () => seekBy(5),
-      ArrowUp: () => changeVolume(1),
-      ArrowDown: () => changeVolume(-1),
-      f: toggleFullscreen
-    }
-    const action = actions[event.key]
+    const actions = new Map([
+      [' ', togglePlay],
+      ['k', togglePlay],
+      ['ArrowLeft', () => seekBy(-5)],
+      ['ArrowRight', () => seekBy(5)],
+      ['ArrowUp', () => changeVolume(1)],
+      ['ArrowDown', () => changeVolume(-1)],
+      ['f', toggleFullscreen]
+    ])
+    const action = actions.get(event.key)
     if (!action) return
     event.preventDefault()
     action()
@@ -954,7 +954,7 @@ export function Television({ videos, label }: TelevisionProps) {
                       {phase === 'error'
                         ? errorCode === -1
                           ? 'YOUTUBE NON RAGGIUNGIBILE'
-                          : (errorReasons[errorCode ?? 0] ??
+                          : (errorReasons.get(errorCode ?? 0) ??
                             `VIDEO NON DISPONIBILE (ERRORE ${errorCode})`)
                         : title}
                     </span>

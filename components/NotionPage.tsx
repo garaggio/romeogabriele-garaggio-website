@@ -602,7 +602,7 @@ export function NotionPage({
         const blockId = video
           .closest('figure')
           ?.className.match(/notion-block-([\da-f]{32})/)?.[1]
-        const poster = blockId && posters[blockId]
+        const poster = blockId && posters.get(blockId)
         if (poster) video.poster = poster
         video.disablePictureInPicture = true
         video.setAttribute('controlslist', 'nodownload noremoteplayback')

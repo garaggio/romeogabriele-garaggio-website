@@ -53,15 +53,13 @@ const videoPoster = (recordMap: ExtendedRecordMap, block: any) => {
 }
 
 /** anteprime dei video, per id del blocco senza trattini */
-export function getVideoPosters(
-  recordMap: ExtendedRecordMap
-): Record<string, string> {
-  const posters: Record<string, string> = {}
+export function getVideoPosters(recordMap: ExtendedRecordMap) {
+  const posters = new Map<string, string>()
   for (const entry of Object.values(recordMap.block)) {
     const block: any = getBlockValue(entry)
     if (block?.type !== 'video') continue
     const poster = videoPoster(recordMap, block)
-    if (poster) posters[String(block.id).replaceAll('-', '')] = poster
+    if (poster) posters.set(String(block.id).replaceAll('-', ''), poster)
   }
   return posters
 }

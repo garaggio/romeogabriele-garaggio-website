@@ -327,13 +327,13 @@ export function Scrapbook({
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (zoomOpen()) return
-    const keys: Record<string, number> = {
-      ArrowLeft: current - 1,
-      ArrowRight: current + 1,
-      Home: 0,
-      End: count - 1
-    }
-    const next = keys[event.key]
+    const keys = new Map([
+      ['ArrowLeft', current - 1],
+      ['ArrowRight', current + 1],
+      ['Home', 0],
+      ['End', count - 1]
+    ])
+    const next = keys.get(event.key)
     if (next !== undefined) {
       event.preventDefault()
       go(next)
